@@ -1,0 +1,15 @@
+{
+  "name": "local-dialogflow-proxy",
+  "version": "1.0.0",
+  "description": "Local proxy server for Dialogflow CX to bypass CORS/certificate issues in local development",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "google-auth-library": "^9.10.0",
+    "axios": "^1.7.2"
+  }
+}

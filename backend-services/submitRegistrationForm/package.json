@@ -1,0 +1,13 @@
+{
+  "name": "submit-registration-form",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.0.0",
+    "@google-cloud/firestore": "^7.0.0"
+  },
+  "scripts": {
+    "start": "functions-framework --target submitRegistrationForm"
+  }
+}
