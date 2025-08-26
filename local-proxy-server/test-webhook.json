@@ -1,0 +1,13 @@
+{
+  "intentInfo": {
+    "displayName": "test"
+  },
+  "fulfillmentInfo": {
+    "tag": "DESCRIBE_SYMTOM"
+  },
+  "sessionInfo": {
+    "parameters": {
+      "user_input": "I have a headache"
+    }
+  }
+}

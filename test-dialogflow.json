@@ -1,0 +1,9 @@
+{
+  "sessionId": "test-session-123",
+  "queryInput": {
+    "text": {
+      "text": "I have a headache"
+    },
+    "languageCode": "en"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "sessionInfo": {
+    "parameters": {
+      "user_input": "I have a headache"
+    }
+  },
+  "fulfillmentInfo": {
+    "tag": "DESCRIBE_SYMPTOM"
+  }
+}
