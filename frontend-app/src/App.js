@@ -12,7 +12,7 @@ import Landing from "./pages/Landing";
 import DashboardPage from "./pages/DashboardPage"; // Import DashboardPage
 
 // Placeholder page components for other routes
-import DoctorsPage from "./pages/PagesComingSoon";
+import DoctorsPage from "./pages/DoctorsPage";
 import ServicesPage from "./pages/PagesComingSoon";
 import AboutPage from "./pages/PagesComingSoon";
 

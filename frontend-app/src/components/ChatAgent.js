@@ -87,6 +87,8 @@ const ChatAgent = ({ isOpen, onClose }) => {
       setMessages([fallbackMessage]);
     } finally {
       setIsLoading(false);
+      // Auto-focus the input field after welcome message
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [sessionId]);
 
@@ -175,6 +177,8 @@ const ChatAgent = ({ isOpen, onClose }) => {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      // Auto-focus the input field after bot responds
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 

@@ -15,7 +15,19 @@ function getTrigger(body) {
   const tag = body?.fulfillmentInfo?.tag;
   if (tag) {
     // Remove quotes, trim whitespace, and convert to uppercase
-    return tag.replace(/['"]/g, "").trim().toUpperCase();
+    const cleanTag = tag.replace(/['"]/g, "").trim().toUpperCase();
+
+    // Special handling for PROVIDE_DATE_TIME - check if user actually typed "1" or "2"
+    if (cleanTag === "PROVIDE_DATE_TIME") {
+      const userText = body.text || "";
+      if (userText === "1") {
+        return "1";
+      } else if (userText === "2") {
+        return "2";
+      }
+    }
+
+    return cleanTag;
   }
   const intent = body?.intentInfo?.displayName;
   return (intent || "UNKNOWN").toUpperCase();
@@ -43,51 +55,180 @@ function extractUserText(body) {
   );
 }
 
-// ---- Demo "DB" for London doctors -------------
-const LONDON_DOCTORS = {
+// ---- Demo "DB" for UK doctors across multiple cities -------------
+const UK_DOCTORS = {
   dentist: [
     {
       doctor_id: "den-001",
       name: "Dr Emily Carter, BDS",
       clinic: "London Dental Clinic – Soho",
+      city: "London",
       specialty: "dentist",
       modalities: ["in_person"],
-      next_available_iso: "2025-08-19T13:30:00+01:00",
+      next_available_iso: "2025-08-28T13:30:00+00:00",
+    },
+    {
+      doctor_id: "den-002",
+      name: "Dr James Wilson, BDS",
+      clinic: "Manchester Smile Centre",
+      city: "Manchester",
+      specialty: "dentist",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-29T09:00:00+00:00",
+    },
+    {
+      doctor_id: "den-003",
+      name: "Dr Sophie Bennett, BDS, MSc",
+      clinic: "Birmingham Dental Practice",
+      city: "Birmingham",
+      specialty: "dentist",
+      modalities: ["in_person"],
+      next_available_iso: "2025-08-30T15:45:00+00:00",
     },
   ],
   dermatologist: [
     {
-      doctor_id: "der-003",
+      doctor_id: "der-001",
       name: "Dr Sarah Patel, MD",
-      clinic: "Harley Street Dermatology (Marylebone)",
+      clinic: "Harley Street Dermatology",
+      city: "London",
       specialty: "dermatologist",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-19T11:00:00+01:00",
+      next_available_iso: "2025-08-28T11:00:00+00:00",
+    },
+    {
+      doctor_id: "der-002",
+      name: "Dr Michael Thompson, FRCP",
+      clinic: "Edinburgh Skin Clinic",
+      city: "Edinburgh",
+      specialty: "dermatologist",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-29T14:30:00+00:00",
     },
   ],
   gp: [
     {
-      doctor_id: "gp-005",
+      doctor_id: "gp-001",
       name: "Dr Lucy Morgan, MRCGP",
       clinic: "Soho Health Centre",
+      city: "London",
       specialty: "gp",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-19T14:15:00+01:00",
+      next_available_iso: "2025-08-28T14:15:00+00:00",
     },
     {
-      doctor_id: "gp-012",
+      doctor_id: "gp-002",
       name: "Dr Adam Collins, MRCGP",
       clinic: "Camden Care Practice",
+      city: "London",
       specialty: "gp",
       modalities: ["in_person"],
-      next_available_iso: "2025-08-20T10:00:00+01:00",
+      next_available_iso: "2025-08-29T10:00:00+00:00",
+    },
+    {
+      doctor_id: "gp-003",
+      name: "Dr Rebecca Hayes, MBBS",
+      clinic: "Bristol Family Medicine",
+      city: "Bristol",
+      specialty: "gp",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-28T16:30:00+00:00",
+    },
+    {
+      doctor_id: "gp-004",
+      name: "Dr David Kumar, MRCGP",
+      clinic: "Leeds Medical Centre",
+      city: "Leeds",
+      specialty: "gp",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-30T08:45:00+00:00",
+    },
+  ],
+  ent: [
+    {
+      doctor_id: "ent-001",
+      name: "Dr Helen Foster, FRCS",
+      clinic: "London ENT Specialists",
+      city: "London",
+      specialty: "ent",
+      modalities: ["in_person"],
+      next_available_iso: "2025-08-29T13:15:00+00:00",
+    },
+    {
+      doctor_id: "ent-002",
+      name: "Dr Robert Clarke, MS",
+      clinic: "Glasgow Ear, Nose & Throat",
+      city: "Glasgow",
+      specialty: "ent",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-30T11:30:00+00:00",
+    },
+  ],
+  ophthalmologist: [
+    {
+      doctor_id: "oph-001",
+      name: "Dr Amanda Price, FRCOphth",
+      clinic: "Manchester Eye Hospital",
+      city: "Manchester",
+      specialty: "ophthalmologist",
+      modalities: ["in_person"],
+      next_available_iso: "2025-08-29T12:00:00+00:00",
+    },
+    {
+      doctor_id: "oph-002",
+      name: "Dr Christopher Lee, MBBS",
+      clinic: "Birmingham Vision Centre",
+      city: "Birmingham",
+      specialty: "ophthalmologist",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-30T14:45:00+00:00",
+    },
+  ],
+  cardiologist: [
+    {
+      doctor_id: "car-001",
+      name: "Dr Elizabeth Turner, FRCP",
+      clinic: "Heart & Vascular Institute London",
+      city: "London",
+      specialty: "cardiologist",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-30T09:30:00+00:00",
+    },
+    {
+      doctor_id: "car-002",
+      name: "Dr Andrew Morrison, MD",
+      clinic: "Edinburgh Cardiac Centre",
+      city: "Edinburgh",
+      specialty: "cardiologist",
+      modalities: ["in_person"],
+      next_available_iso: "2025-09-02T10:15:00+00:00",
+    },
+  ],
+  neurologist: [
+    {
+      doctor_id: "neu-001",
+      name: "Dr Victoria Singh, FRCP",
+      clinic: "Bristol Neurology Clinic",
+      city: "Bristol",
+      specialty: "neurologist",
+      modalities: ["in_person", "telemedicine"],
+      next_available_iso: "2025-08-30T13:00:00+00:00",
+    },
+    {
+      doctor_id: "neu-002",
+      name: "Dr Thomas Evans, MBBS",
+      clinic: "Leeds Brain & Spine Centre",
+      city: "Leeds",
+      specialty: "neurologist",
+      modalities: ["in_person"],
+      next_available_iso: "2025-09-03T15:30:00+00:00",
     },
   ],
 };
 
 const doctorsDb = {
   async listDoctors({ specialty, location, modality, limit = 5 }) {
-    return (LONDON_DOCTORS[specialty] || []).slice(0, limit);
+    return (UK_DOCTORS[specialty] || []).slice(0, limit);
   },
 };
 
@@ -97,6 +238,27 @@ async function handleDescribeSymptom(body) {
   const userText = extractUserText(body);
 
   console.log("Processing symptom:", userText);
+
+  // Check if user is directly asking for doctors instead of describing symptoms
+  if (
+    /find.*doctor|show.*doctor|book.*appointment|see.*doctor|doctor.*list|available.*doctor|list.*doctor/i.test(
+      userText
+    )
+  ) {
+    // User wants to find doctors directly - redirect to show doctors with GP as default
+    return await handleShowDoctors({
+      ...body,
+      sessionInfo: {
+        ...body.sessionInfo,
+        parameters: {
+          ...params,
+          specialty: "gp",
+          specialtyDisplayName: "General Practitioners",
+          symptoms: userText,
+        },
+      },
+    });
+  }
 
   // Simple emergency screen
   if (
@@ -116,17 +278,35 @@ async function handleDescribeSymptom(body) {
   if (/tooth|teeth|gum|dent/i.test(userText)) {
     specialty = "dentist";
     specialtyDisplayName = "Dentists";
-  } else if (/skin|rash|acne|derma/i.test(userText)) {
+  } else if (/skin|rash|acne|derma|mole|eczema|psoriasis/i.test(userText)) {
     specialty = "dermatologist";
     specialtyDisplayName = "Dermatologists";
-  } else if (/eye|vision|ophthal/i.test(userText)) {
+  } else if (
+    /eye|vision|ophthal|sight|blind|cataract|glaucoma/i.test(userText)
+  ) {
     specialty = "ophthalmologist";
     specialtyDisplayName = "Ophthalmologists";
   } else if (
-    /ear|nose|throat|sinus|\bent\b|runny nose|hearing problems/i.test(userText)
+    /ear|nose|throat|sinus|\bent\b|runny nose|hearing problems|tinnitus|vertigo/i.test(
+      userText
+    )
   ) {
     specialty = "ent";
     specialtyDisplayName = "ENT Specialists";
+  } else if (
+    /heart|chest pain|palpitation|cardiac|cardiovascular|blood pressure|hypertension/i.test(
+      userText
+    )
+  ) {
+    specialty = "cardiologist";
+    specialtyDisplayName = "Cardiologists";
+  } else if (
+    /brain|headache|migraine|seizure|neurological|memory|confusion|stroke|epilepsy/i.test(
+      userText
+    )
+  ) {
+    specialty = "neurologist";
+    specialtyDisplayName = "Neurologists";
   } else {
     specialty = "gp";
     specialtyDisplayName = "General Practitioners";
@@ -295,11 +475,13 @@ async function handleShowDoctors(body) {
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `${i + 1}. ${d.name} — ${d.clinic}. Next available: ${when}`;
+    return `${i + 1}. ${d.name} — ${d.clinic}, ${
+      d.city
+    }. Next available: ${when}`;
   });
 
   return dfReply({
-    text: `Here are available ${specialtyDisplayName} in London:\n\n${lines.join(
+    text: `Here are available ${specialtyDisplayName} across the UK:\n\n${lines.join(
       "\n"
     )}\n\nWhich doctor would you like to book with? (You can say the number or the name.)`,
     params: {
@@ -334,6 +516,7 @@ functions.http("appointmentWebhook", async (req, res) => {
       case "ASK_ADVICE":
       case "ASK_ADVICE_IR":
       case "GIVE_ADVICE":
+      case "1": // Handle when user types "1" for advice
         result = await handleProvideAdvice(req.body);
         break;
       case "SHOW_DOCTORS":
@@ -341,35 +524,59 @@ functions.http("appointmentWebhook", async (req, res) => {
       case "CHOOSE_SPECIALIST":
       case "CHOOSE_SPECIALIST_IR":
       case "FIND_DOCTORS":
+      case "2": // Handle when user types "2" for doctors
         result = await handleShowDoctors(req.body);
         break;
-      default:
-        // Check if user text contains advice or doctor keywords
-        const userText = extractUserText(req.body).toLowerCase();
+      case "CONFIRM_YES":
+        // Handle when user says "yes" after getting advice
         const params =
           (req.body.sessionInfo && req.body.sessionInfo.parameters) || {};
-
-        // Handle numeric choices (1 = advice, 2 = doctors)
-        if (/^1$|^advice$|get.*advice|medical.*advice/i.test(userText)) {
-          result = await handleProvideAdvice(req.body);
-        } else if (
-          /^2$|^doctors?$|show.*doctor|available.*doctor|find.*doctor/i.test(
-            userText
-          )
-        ) {
+        if (params.next_action === "ADVICE_GIVEN" && params.advice_given) {
+          // User wants to see doctors after getting advice
           result = await handleShowDoctors(req.body);
-        } else if (params.next_action === "CHOOSE_OPTION") {
-          // User is in the choice context but didn't choose a valid option
-          result = dfReply({
-            text: "Please choose either:\n\n1. **Get medical advice** for your symptoms\n2. **Show available doctors** for an appointment\n\nYou can type '1', '2', 'advice', or 'doctors'.",
-            params: { ...params },
-          });
         } else {
-          result = dfReply({
-            text: "I can help you find healthcare services. Try describing your symptoms.",
-            params: { next_action: "UNKNOWN_TRIGGER" },
-          });
+          // Other "yes" contexts - fall through to default logic
+          result = null;
         }
+        break;
+      case "PROVIDE_DATE_TIME":
+        // Handle when Dialogflow misinterprets "1" or "2" as time
+        // Fall through to default case logic
+        result = null;
+        break;
+      default:
+        // For unknown triggers, set result to null to trigger default logic
+        result = null;
+        break;
+    }
+
+    // Handle cases where result is null (from PROVIDE_DATE_TIME or default)
+    if (!result) {
+      const userText = extractUserText(req.body).toLowerCase();
+      const params =
+        (req.body.sessionInfo && req.body.sessionInfo.parameters) || {};
+
+      // Handle numeric choices (1 = advice, 2 = doctors)
+      if (/^1$|^advice$|get.*advice|medical.*advice/i.test(userText)) {
+        result = await handleProvideAdvice(req.body);
+      } else if (
+        /^2$|^doctors?$|show.*doctor|available.*doctor|find.*doctor/i.test(
+          userText
+        )
+      ) {
+        result = await handleShowDoctors(req.body);
+      } else if (params.next_action === "CHOOSE_OPTION") {
+        // User is in the choice context but didn't choose a valid option
+        result = dfReply({
+          text: "Please choose either:\n\n1. **Get medical advice** for your symptoms\n2. **Show available doctors** for an appointment\n\nYou can type '1', '2', 'advice', or 'doctors'.",
+          params: { ...params },
+        });
+      } else {
+        result = dfReply({
+          text: "I can help you find healthcare services. Try describing your symptoms.",
+          params: { next_action: "UNKNOWN_TRIGGER" },
+        });
+      }
     }
 
     console.log("Response:", JSON.stringify(result, null, 2));

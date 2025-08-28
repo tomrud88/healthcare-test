@@ -1,5 +1,5 @@
 // src/pages/Landing.js
-import React from 'react';
+import React from "react";
 import { Link } from "react-router-dom"; // Use Link for internal navigation
 import { doctors } from "../data/doctors"; // Assuming you still have this data
 import DoctorCard from "../components/DoctorCard"; // Re-using your DoctorCard component
@@ -11,7 +11,6 @@ export default function Landing() {
 
   return (
     <div className="bg-white text-gray-800 font-sans">
-
       {/* Hero Section */}
       <section className="text-center py-16 bg-blue-50 relative overflow-hidden">
         <div className="relative container mx-auto px-6 py-20">
@@ -24,40 +23,53 @@ export default function Landing() {
               </div>
               <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight">
                 Complete Healthcare
-                <span className="block text-blue-600">
-                  Management
-                </span>
+                <span className="block text-blue-600">Management</span>
                 at Your Fingertips
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl lg:max-w-none mx-auto lg:mx-0 mb-8 leading-relaxed">
-                Experience the future of healthcare with NextGen Doctor. From
-                real-time scheduling and digital check-ins to personalized
-                health education and AI-powered test result summaries.
+                Experience the future of healthcare with NextGen Doctor. Connect
+                with 16+ specialists across 7 UK cities, from real-time
+                scheduling and digital check-ins to personalized health
+                education and AI-powered medical insights.
               </p>
               <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mb-12">
-                <Link to="/book-appointment" className="bg-blue-600 text-white px-8 py-4 rounded-2xl hover:bg-blue-700 transition-colors duration-300 shadow-md hover:shadow-lg font-semibold no-underline">Get Started</Link>
-                <button className="border border-blue-600 text-blue-600 px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors duration-300 shadow-md hover:shadow-lg font-semibold">Watch Demo</button>
+                <Link
+                  to="/book-appointment"
+                  className="bg-blue-600 text-white px-8 py-4 rounded-2xl hover:bg-blue-700 transition-colors duration-300 shadow-md hover:shadow-lg font-semibold no-underline"
+                >
+                  Get Started
+                </Link>
+                <button className="border border-blue-600 text-blue-600 px-8 py-4 rounded-2xl hover:bg-blue-50 transition-colors duration-300 shadow-md hover:shadow-lg font-semibold">
+                  Watch Demo
+                </button>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-8 max-w-md mx-auto lg:mx-0">
                 <div className="text-center lg:text-left">
-                  <div className="text-3xl font-bold mb-1 text-blue-600">10k+</div>
+                  <div className="text-3xl font-bold mb-1 text-blue-600">
+                    2k+
+                  </div>
                   <div className="text-gray-600 text-sm">Happy Patients</div>
                 </div>
                 <div className="text-center lg:text-left">
-                  <div className="text-3xl font-bold mb-1 text-blue-600">500+</div>
+                  <div className="text-3xl font-bold mb-1 text-blue-600">
+                    16+
+                  </div>
                   <div className="text-gray-600 text-sm">Expert Doctors</div>
                 </div>
                 <div className="text-center lg:text-left">
-                  <div className="text-3xl font-bold mb-1 text-blue-600">24/7</div>
-                  <div className="text-gray-600 text-sm">Support</div>
+                  <div className="text-3xl font-bold mb-1 text-blue-600">7</div>
+                  <div className="text-gray-600 text-sm">UK Cities</div>
                 </div>
               </div>
             </div>
 
             {/* Hero Image */}
-            <div className="relative flex justify-center lg:justify-end animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div
+              className="relative flex justify-center lg:justify-end animate-fade-in"
+              style={{ animationDelay: "0.2s" }}
+            >
               <div className="relative">
                 {/* Background decorative elements */}
                 <div className="absolute -top-8 -left-8 w-32 h-32 bg-blue-200/50 rounded-full blur-2xl"></div>
@@ -70,30 +82,44 @@ export default function Landing() {
                     alt="NextGen Doctor - AI-Enhanced Healthcare Professional"
                     className="w-80 h-auto rounded-2xl shadow-md"
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.style.display = "none";
                       const fallback = e.currentTarget.nextElementSibling;
                       if (fallback) {
-                        fallback.style.display = 'flex';
+                        fallback.style.display = "flex";
                       }
                     }}
                   />
                   {/* Fallback placeholder */}
                   <div
                     className="hidden w-80 h-96 rounded-2xl items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, rgba(91, 115, 255, 0.2) 0%, rgba(68, 92, 224, 0.3) 100%)', color: '#5B73FF' }}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(91, 115, 255, 0.2) 0%, rgba(68, 92, 224, 0.3) 100%)",
+                      color: "#5B73FF",
+                    }}
                   >
                     <div className="text-center p-8">
                       <div className="text-6xl mb-4">👩‍⚕️</div>
-                      <div className="text-xl font-semibold">NextGen Doctor</div>
-                      <div className="text-sm opacity-75 mt-2">AI-Enhanced Healthcare</div>
+                      <div className="text-xl font-semibold">
+                        NextGen Doctor
+                      </div>
+                      <div className="text-sm opacity-75 mt-2">
+                        AI-Enhanced Healthcare
+                      </div>
                     </div>
                   </div>
 
                   {/* Floating badges */}
-                  <div className="absolute -top-4 -right-4 text-white px-4 py-2 rounded-2xl text-sm font-semibold shadow-md animate-float" style={{ backgroundColor: '#00B074' }}>
+                  <div
+                    className="absolute -top-4 -right-4 text-white px-4 py-2 rounded-2xl text-sm font-semibold shadow-md animate-float"
+                    style={{ backgroundColor: "#00B074" }}
+                  >
                     ✓ AI-Powered
                   </div>
-                  <div className="absolute -bottom-4 -left-4 text-white px-4 py-2 rounded-2xl text-sm font-semibold shadow-md animate-float" style={{ animationDelay: '1s', backgroundColor: '#5B73FF' }}>
+                  <div
+                    className="absolute -bottom-4 -left-4 text-white px-4 py-2 rounded-2xl text-sm font-semibold shadow-md animate-float"
+                    style={{ animationDelay: "1s", backgroundColor: "#5B73FF" }}
+                  >
                     🔬 Advanced Care
                   </div>
                 </div>
@@ -118,7 +144,10 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Feature Card 1 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '0ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "0ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   📅
@@ -127,15 +156,31 @@ export default function Landing() {
                   Real-time Scheduling
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Book appointments based on your preferred location and specific medical services with instant availability updates.
+                  Book appointments based on your preferred location and
+                  specific medical services with instant availability updates.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
 
             {/* Feature Card 2 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "100ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-green-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   🔔
@@ -144,15 +189,31 @@ export default function Landing() {
                   Pre-Visit Reminders
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Receive personalized appointment reminders with preparation instructions tailored to your visit type.
+                  Receive personalized appointment reminders with preparation
+                  instructions tailored to your visit type.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
 
             {/* Feature Card 3 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "200ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-purple-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   💬
@@ -161,15 +222,31 @@ export default function Landing() {
                   Real-time Communication
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Connect instantly with healthcare providers through secure messaging and video consultations.
+                  Connect instantly with healthcare providers through secure
+                  messaging and video consultations.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
 
             {/* Feature Card 4 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '300ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "300ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-orange-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   📱
@@ -178,15 +255,31 @@ export default function Landing() {
                   Digital Check-in
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Skip the waiting room lines - scan QR codes or enter details through our dedicated web application.
+                  Skip the waiting room lines - scan QR codes or enter details
+                  through our dedicated web application.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
 
             {/* Feature Card 5 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "400ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-indigo-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   📚
@@ -195,15 +288,31 @@ export default function Landing() {
                   Personalized Health Education
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Access customized health materials and follow-up content based on your specific medical conditions.
+                  Access customized health materials and follow-up content based
+                  on your specific medical conditions.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
 
             {/* Feature Card 6 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '500ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "500ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-cyan-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   💊
@@ -212,15 +321,31 @@ export default function Landing() {
                   E-Prescribing
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Receive digital prescriptions sent directly to your preferred pharmacy with automatic refill reminders.
+                  Receive digital prescriptions sent directly to your preferred
+                  pharmacy with automatic refill reminders.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
 
             {/* Feature Card 7 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "600ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-violet-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   🔬
@@ -229,15 +354,31 @@ export default function Landing() {
                   Test Results & Images
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  View your lab results and medical images with AI-powered summaries that explain complex terminology clearly.
+                  View your lab results and medical images with AI-powered
+                  summaries that explain complex terminology clearly.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
 
             {/* Feature Card 8 */}
-            <div className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in" style={{ animationDelay: '700ms' }}>
+            <div
+              className="group relative bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-500 border border-gray-200 animate-fade-in"
+              style={{ animationDelay: "700ms" }}
+            >
               <div className="relative z-10 text-center">
                 <div className="w-16 h-16 mx-auto mb-6 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner-glow group-hover:scale-110 transition-transform duration-300">
                   🏥
@@ -246,11 +387,24 @@ export default function Landing() {
                   Find Nearby Doctors
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Locate trusted healthcare providers in your area with detailed profiles and patient reviews.
+                  Locate trusted healthcare providers in your area with detailed
+                  profiles and patient reviews.
                 </p>
               </div>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" style={{ background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' }}></div>
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%)",
+                }}
+              ></div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-b-2xl transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)",
+                }}
+              ></div>
             </div>
           </div>
         </div>
@@ -287,9 +441,7 @@ export default function Landing() {
                   <div className="space-y-4 text-gray-600">
                     <div className="flex justify-between items-center p-3 bg-white rounded-xl">
                       <span className="font-medium">Hemoglobin A1C:</span>
-                      <span className="font-bold text-yellow-500">
-                        7.2%
-                      </span>
+                      <span className="font-bold text-yellow-500">7.2%</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white rounded-xl">
                       <span className="font-medium">Fasting Glucose:</span>
@@ -373,10 +525,11 @@ export default function Landing() {
         <div className="container mx-auto px-6 animate-fade-in">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
-              Our Top Rated Doctors
+              Our Top Rated Doctors Across the UK
             </h2>
             <p className="text-lg text-gray-600">
-              Meet our exceptional healthcare professionals ready to serve you
+              Meet our exceptional healthcare professionals spanning 7 cities
+              with expertise in 6 specialties
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -391,7 +544,10 @@ export default function Landing() {
             ))}
           </div>
           <div className="text-center mt-12">
-            <Link to="/doctors" className="inline-block px-8 py-4 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 no-underline">
+            <Link
+              to="/doctors"
+              className="inline-block px-8 py-4 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 no-underline"
+            >
               View All Doctors
             </Link>
           </div>
