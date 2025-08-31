@@ -71,7 +71,13 @@ const UK_DOCTORS = {
       city: "London",
       specialty: "dentist",
       modalities: ["in_person"],
-      next_available_iso: "2025-08-28T13:30:00+00:00",
+      availability: {
+        "2025-09-02": ["09:00", "10:30", "14:00", "15:30"],
+        "2025-09-03": ["09:00", "11:00", "13:30", "16:00"],
+        "2025-09-04": ["08:30", "10:00", "14:30"],
+        "2025-09-05": ["09:30", "11:30", "15:00", "16:30"],
+        "2025-09-06": ["09:00", "13:00", "14:30"],
+      },
     },
     {
       doctor_id: "den-002",
@@ -80,7 +86,13 @@ const UK_DOCTORS = {
       city: "Manchester",
       specialty: "dentist",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-29T09:00:00+00:00",
+      availability: {
+        "2025-09-02": ["10:00", "11:30", "15:00"],
+        "2025-09-03": ["09:30", "14:00", "16:30"],
+        "2025-09-04": ["08:00", "10:30", "13:00", "15:30"],
+        "2025-09-05": ["09:00", "11:00", "14:30"],
+        "2025-09-09": ["10:00", "13:30", "15:00", "16:00"],
+      },
     },
     {
       doctor_id: "den-003",
@@ -89,7 +101,13 @@ const UK_DOCTORS = {
       city: "Birmingham",
       specialty: "dentist",
       modalities: ["in_person"],
-      next_available_iso: "2025-08-30T15:45:00+00:00",
+      availability: {
+        "2025-09-03": ["09:00", "10:30", "15:45"],
+        "2025-09-04": ["08:30", "11:00", "14:00", "16:30"],
+        "2025-09-05": ["09:30", "13:00", "15:30"],
+        "2025-09-06": ["10:00", "11:30", "14:30", "16:00"],
+        "2025-09-10": ["09:00", "10:30", "13:30"],
+      },
     },
   ],
   dermatologist: [
@@ -100,7 +118,13 @@ const UK_DOCTORS = {
       city: "London",
       specialty: "dermatologist",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-28T11:00:00+00:00",
+      availability: {
+        "2025-09-02": ["11:00", "14:30", "16:00"],
+        "2025-09-03": ["09:30", "11:30", "15:00"],
+        "2025-09-04": ["10:00", "13:00", "14:30", "16:30"],
+        "2025-09-05": ["09:00", "11:00", "15:30"],
+        "2025-09-06": ["10:30", "13:30", "15:00"],
+      },
     },
     {
       doctor_id: "der-002",
@@ -109,7 +133,13 @@ const UK_DOCTORS = {
       city: "Edinburgh",
       specialty: "dermatologist",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-29T14:30:00+00:00",
+      availability: {
+        "2025-09-02": ["10:30", "14:00", "15:30"],
+        "2025-09-04": ["09:00", "11:30", "13:30", "16:00"],
+        "2025-09-05": ["10:00", "14:30", "16:30"],
+        "2025-09-06": ["09:30", "11:00", "15:00"],
+        "2025-09-09": ["10:30", "13:00", "14:30"],
+      },
     },
   ],
   gp: [
@@ -120,7 +150,13 @@ const UK_DOCTORS = {
       city: "London",
       specialty: "gp",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-28T14:15:00+00:00",
+      availability: {
+        "2025-09-02": ["08:30", "10:00", "14:15", "16:30"],
+        "2025-09-03": ["09:00", "11:30", "13:00", "15:30"],
+        "2025-09-04": ["08:00", "10:30", "14:00", "16:00"],
+        "2025-09-05": ["09:30", "11:00", "13:30", "15:00"],
+        "2025-09-06": ["08:30", "10:00", "14:30", "16:30"],
+      },
     },
     {
       doctor_id: "gp-002",
@@ -129,7 +165,13 @@ const UK_DOCTORS = {
       city: "London",
       specialty: "gp",
       modalities: ["in_person"],
-      next_available_iso: "2025-08-29T10:00:00+00:00",
+      availability: {
+        "2025-09-02": ["09:00", "11:00", "15:00"],
+        "2025-09-03": ["10:00", "13:30", "16:00"],
+        "2025-09-04": ["08:30", "10:30", "14:30"],
+        "2025-09-05": ["09:30", "11:30", "15:30"],
+        "2025-09-09": ["09:00", "13:00", "14:00"],
+      },
     },
     {
       doctor_id: "gp-003",
@@ -138,7 +180,13 @@ const UK_DOCTORS = {
       city: "Bristol",
       specialty: "gp",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-28T16:30:00+00:00",
+      availability: {
+        "2025-09-02": ["09:30", "11:30", "16:30"],
+        "2025-09-03": ["08:00", "10:00", "14:00", "15:30"],
+        "2025-09-04": ["09:00", "11:00", "13:30", "16:00"],
+        "2025-09-05": ["10:30", "14:30", "16:30"],
+        "2025-09-06": ["08:30", "11:30", "15:00"],
+      },
     },
     {
       doctor_id: "gp-004",
@@ -147,7 +195,13 @@ const UK_DOCTORS = {
       city: "Leeds",
       specialty: "gp",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-30T08:45:00+00:00",
+      availability: {
+        "2025-09-03": ["08:45", "10:15", "13:45", "15:15"],
+        "2025-09-04": ["09:00", "11:30", "14:00", "16:30"],
+        "2025-09-05": ["08:30", "10:00", "13:00", "15:30"],
+        "2025-09-06": ["09:30", "11:00", "14:30", "16:00"],
+        "2025-09-09": ["08:45", "10:30", "13:30"],
+      },
     },
   ],
   ent: [
@@ -158,7 +212,13 @@ const UK_DOCTORS = {
       city: "London",
       specialty: "ent",
       modalities: ["in_person"],
-      next_available_iso: "2025-08-29T13:15:00+00:00",
+      availability: {
+        "2025-09-02": ["10:00", "13:15", "15:45"],
+        "2025-09-03": ["09:30", "11:30", "14:30", "16:30"],
+        "2025-09-04": ["08:30", "10:30", "13:00", "15:00"],
+        "2025-09-05": ["09:00", "11:00", "14:00", "16:00"],
+        "2025-09-06": ["10:30", "13:30", "15:30"],
+      },
     },
     {
       doctor_id: "ent-002",
@@ -167,7 +227,13 @@ const UK_DOCTORS = {
       city: "Glasgow",
       specialty: "ent",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-30T11:30:00+00:00",
+      availability: {
+        "2025-09-03": ["09:00", "11:30", "14:00"],
+        "2025-09-04": ["10:00", "13:30", "15:30", "17:00"],
+        "2025-09-05": ["08:30", "10:30", "14:30"],
+        "2025-09-06": ["09:30", "11:00", "15:00", "16:30"],
+        "2025-09-09": ["10:00", "13:00", "14:30"],
+      },
     },
   ],
   ophthalmologist: [
@@ -178,7 +244,13 @@ const UK_DOCTORS = {
       city: "Manchester",
       specialty: "ophthalmologist",
       modalities: ["in_person"],
-      next_available_iso: "2025-08-29T12:00:00+00:00",
+      availability: {
+        "2025-09-02": ["09:00", "12:00", "15:00"],
+        "2025-09-03": ["10:30", "13:30", "16:00"],
+        "2025-09-04": ["08:30", "11:00", "14:30"],
+        "2025-09-05": ["09:30", "12:30", "15:30"],
+        "2025-09-06": ["10:00", "13:00", "16:30"],
+      },
     },
     {
       doctor_id: "oph-002",
@@ -187,7 +259,13 @@ const UK_DOCTORS = {
       city: "Birmingham",
       specialty: "ophthalmologist",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-30T14:45:00+00:00",
+      availability: {
+        "2025-09-03": ["09:00", "11:00", "14:45"],
+        "2025-09-04": ["10:30", "13:00", "15:30", "17:00"],
+        "2025-09-05": ["08:30", "10:00", "14:00", "16:30"],
+        "2025-09-06": ["09:30", "12:00", "15:00"],
+        "2025-09-10": ["10:00", "13:30", "16:00"],
+      },
     },
   ],
   cardiologist: [
@@ -198,7 +276,13 @@ const UK_DOCTORS = {
       city: "London",
       specialty: "cardiologist",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-30T09:30:00+00:00",
+      availability: {
+        "2025-09-02": ["09:30", "11:30", "14:30"],
+        "2025-09-03": ["10:00", "13:00", "15:30", "17:00"],
+        "2025-09-04": ["08:30", "10:30", "14:00", "16:00"],
+        "2025-09-05": ["09:00", "11:00", "15:00"],
+        "2025-09-06": ["10:30", "13:30", "16:30"],
+      },
     },
     {
       doctor_id: "car-002",
@@ -207,7 +291,13 @@ const UK_DOCTORS = {
       city: "Edinburgh",
       specialty: "cardiologist",
       modalities: ["in_person"],
-      next_available_iso: "2025-09-02T10:15:00+00:00",
+      availability: {
+        "2025-09-03": ["09:00", "10:15", "14:30"],
+        "2025-09-04": ["11:00", "13:30", "16:00"],
+        "2025-09-05": ["08:30", "10:30", "15:30"],
+        "2025-09-06": ["09:30", "11:30", "14:00", "16:30"],
+        "2025-09-09": ["10:15", "13:00", "15:00"],
+      },
     },
   ],
   neurologist: [
@@ -218,7 +308,13 @@ const UK_DOCTORS = {
       city: "Bristol",
       specialty: "neurologist",
       modalities: ["in_person", "telemedicine"],
-      next_available_iso: "2025-08-30T13:00:00+00:00",
+      availability: {
+        "2025-09-02": ["10:00", "13:00", "15:30"],
+        "2025-09-03": ["09:30", "11:30", "14:30", "16:30"],
+        "2025-09-04": ["08:30", "10:30", "13:30", "15:00"],
+        "2025-09-05": ["09:00", "11:00", "14:00", "16:00"],
+        "2025-09-06": ["10:30", "13:00", "15:30"],
+      },
     },
     {
       doctor_id: "neu-002",
@@ -227,7 +323,13 @@ const UK_DOCTORS = {
       city: "Leeds",
       specialty: "neurologist",
       modalities: ["in_person"],
-      next_available_iso: "2025-09-03T15:30:00+00:00",
+      availability: {
+        "2025-09-04": ["09:00", "11:30", "15:30"],
+        "2025-09-05": ["10:00", "13:00", "16:00"],
+        "2025-09-06": ["08:30", "10:30", "14:30"],
+        "2025-09-09": ["09:30", "11:00", "15:00", "17:00"],
+        "2025-09-10": ["10:30", "13:30", "16:30"],
+      },
     },
   ],
 };
@@ -235,6 +337,73 @@ const UK_DOCTORS = {
 const doctorsDb = {
   async listDoctors({ specialty, location, modality, limit = 5 }) {
     return (UK_DOCTORS[specialty] || []).slice(0, limit);
+  },
+
+  async getDoctorById(doctorId) {
+    // Find doctor across all specialties
+    for (const specialty in UK_DOCTORS) {
+      const doctor = UK_DOCTORS[specialty].find(
+        (d) => d.doctor_id === doctorId
+      );
+      if (doctor) return doctor;
+    }
+    return null;
+  },
+
+  async getAvailability(doctorId, fromDate = null, toDate = null) {
+    const doctor = await this.getDoctorById(doctorId);
+    if (!doctor) return {};
+
+    let availability = doctor.availability;
+
+    // Filter by date range if provided
+    if (fromDate || toDate) {
+      const filtered = {};
+      Object.keys(availability).forEach((date) => {
+        const dateObj = new Date(date);
+        const from = fromDate ? new Date(fromDate) : new Date("1900-01-01");
+        const to = toDate ? new Date(toDate) : new Date("2100-12-31");
+
+        if (dateObj >= from && dateObj <= to) {
+          filtered[date] = availability[date];
+        }
+      });
+      availability = filtered;
+    }
+
+    return availability;
+  },
+
+  async getAvailableSlots(doctorId, date) {
+    const doctor = await this.getDoctorById(doctorId);
+    if (!doctor || !doctor.availability[date]) return [];
+
+    return doctor.availability[date].map((time) => ({
+      slot_id: `${doctorId}-${date}-${time}`,
+      date: date,
+      time: time,
+      datetime_iso: `${date}T${time}:00+00:00`,
+      available: true,
+    }));
+  },
+
+  async bookSlot(slotId, patientInfo) {
+    // Extract doctor_id, date, and time from slot_id
+    const [doctorId, date, time] = slotId.split("-");
+
+    // In a real system, you would:
+    // 1. Remove the slot from availability
+    // 2. Create a booking record
+    // 3. Send confirmation emails
+
+    return {
+      success: true,
+      booking_id: `BK-${Date.now()}`,
+      doctor_id: doctorId,
+      date: date,
+      time: time,
+      patient: patientInfo,
+    };
   },
 };
 
@@ -568,17 +737,27 @@ async function handleShowDoctors(body) {
   }
 
   const lines = doctors.map((d, i) => {
-    const when = new Date(d.next_available_iso).toLocaleString("en-GB", {
-      timeZone: "Europe/London",
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    // Get first available date and time from availability
+    const availableDates = Object.keys(d.availability).sort();
+    const firstDate = availableDates[0];
+    const firstTime = firstDate ? d.availability[firstDate][0] : null;
+
+    let nextAvailable = "No availability";
+    if (firstDate && firstTime) {
+      const dateTime = new Date(`${firstDate}T${firstTime}:00+00:00`);
+      nextAvailable = dateTime.toLocaleString("en-GB", {
+        timeZone: "Europe/London",
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
     return `${i + 1}. ${d.name} — ${d.clinic}, ${
       d.city
-    }. Next available: ${when}`;
+    }. Next available: ${nextAvailable}`;
   });
 
   return dfReply({
@@ -591,6 +770,284 @@ async function handleShowDoctors(body) {
       next_action: "OFFER_DOCTORS",
     },
   });
+}
+
+async function handleChooseDoctor(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  const doctors = params.offer_doctors || [];
+  const userText = extractUserText(body).toLowerCase();
+
+  let chosenDoctor = null;
+
+  // Try to match by number
+  const num = parseInt((userText.match(/\d+/) || [])[0] || "", 10);
+  if (num && doctors[num - 1]) {
+    chosenDoctor = doctors[num - 1];
+  }
+
+  // Try to match by name
+  if (!chosenDoctor) {
+    chosenDoctor = doctors.find((d) =>
+      d.name
+        .toLowerCase()
+        .split(/\s+/)
+        .some((part) => userText.includes(part))
+    );
+  }
+
+  if (!chosenDoctor) {
+    return dfReply({
+      text: "I couldn't match that doctor. Please say the number from the list or the doctor's name.",
+      params: { ...params, next_action: "OFFER_DOCTORS" },
+    });
+  }
+
+  // Get availability for the next 2 weeks
+  const availability = await doctorsDb.getAvailability(chosenDoctor.doctor_id);
+  const availableDates = Object.keys(availability).sort();
+
+  if (availableDates.length === 0) {
+    return dfReply({
+      text: `${chosenDoctor.name} has no available appointments currently. Would you like to see another doctor?`,
+      params: { ...params, next_action: "OFFER_DOCTORS" },
+    });
+  }
+
+  // Show available dates
+  const dateOptions = availableDates.slice(0, 7).map((date, i) => {
+    const dateObj = new Date(date);
+    const formattedDate = dateObj.toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    });
+    const slotsCount = availability[date].length;
+    return `${i + 1}. ${formattedDate} (${slotsCount} slots available)`;
+  });
+
+  return dfReply({
+    text: `Great! You've selected ${chosenDoctor.name} at ${
+      chosenDoctor.clinic
+    }.\n\nHere are available dates:\n\n${dateOptions.join(
+      "\n"
+    )}\n\nWhich date would you prefer? (You can say the number or the date)`,
+    params: {
+      ...params,
+      selected_doctor: chosenDoctor,
+      available_dates: availableDates.slice(0, 7),
+      availability: availability,
+      next_action: "CHOOSE_DATE",
+    },
+  });
+}
+
+async function handleChooseDate(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  const availableDates = params.available_dates || [];
+  const availability = params.availability || {};
+  const selectedDoctor = params.selected_doctor;
+  const userText = extractUserText(body).toLowerCase();
+
+  let chosenDate = null;
+
+  // Try to match by number
+  const num = parseInt((userText.match(/\d+/) || [])[0] || "", 10);
+  if (num && availableDates[num - 1]) {
+    chosenDate = availableDates[num - 1];
+  }
+
+  // Try to match by date words
+  if (!chosenDate) {
+    chosenDate = availableDates.find((date) => {
+      const dateObj = new Date(date);
+      const dayName = dateObj
+        .toLocaleDateString("en-GB", { weekday: "long" })
+        .toLowerCase();
+      const shortDay = dateObj
+        .toLocaleDateString("en-GB", { weekday: "short" })
+        .toLowerCase();
+      return userText.includes(dayName) || userText.includes(shortDay);
+    });
+  }
+
+  if (!chosenDate) {
+    return dfReply({
+      text: "I couldn't match that date. Please say the number from the list or the day name.",
+      params: { ...params, next_action: "CHOOSE_DATE" },
+    });
+  }
+
+  // Get time slots for chosen date
+  const timeSlots = await doctorsDb.getAvailableSlots(
+    selectedDoctor.doctor_id,
+    chosenDate
+  );
+
+  if (timeSlots.length === 0) {
+    return dfReply({
+      text: `Sorry, that date is no longer available. Please choose another date.`,
+      params: { ...params, next_action: "CHOOSE_DATE" },
+    });
+  }
+
+  const timeOptions = timeSlots.map((slot, i) => {
+    const timeFormatted = new Date(
+      `2000-01-01T${slot.time}:00`
+    ).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    return `${i + 1}. ${timeFormatted}`;
+  });
+
+  const dateFormatted = new Date(chosenDate).toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  });
+
+  return dfReply({
+    text: `Perfect! You've chosen ${dateFormatted}.\n\nAvailable times:\n\n${timeOptions.join(
+      "\n"
+    )}\n\nWhich time works best for you?`,
+    params: {
+      ...params,
+      selected_date: chosenDate,
+      available_slots: timeSlots,
+      next_action: "CHOOSE_TIME",
+    },
+  });
+}
+
+async function handleChooseTime(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  const availableSlots = params.available_slots || [];
+  const selectedDoctor = params.selected_doctor;
+  const selectedDate = params.selected_date;
+  const userText = extractUserText(body).toLowerCase();
+
+  let chosenSlot = null;
+
+  // Try to match by number
+  const num = parseInt((userText.match(/\d+/) || [])[0] || "", 10);
+  if (num && availableSlots[num - 1]) {
+    chosenSlot = availableSlots[num - 1];
+  }
+
+  // Try to match by time
+  if (!chosenSlot) {
+    chosenSlot = availableSlots.find((slot) => {
+      const timeStr = slot.time.replace(":", "");
+      return userText.includes(slot.time) || userText.includes(timeStr);
+    });
+  }
+
+  if (!chosenSlot) {
+    return dfReply({
+      text: "I couldn't match that time. Please say the number from the list or the exact time.",
+      params: { ...params, next_action: "CHOOSE_TIME" },
+    });
+  }
+
+  const dateFormatted = new Date(selectedDate).toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  });
+
+  const timeFormatted = new Date(
+    `2000-01-01T${chosenSlot.time}:00`
+  ).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return dfReply({
+    text: `Excellent! You've selected:\n\n📅 **${selectedDoctor.name}**\n🏥 ${selectedDoctor.clinic}\n📍 ${selectedDate} at ${timeFormatted}\n\nTo confirm your appointment, I'll need:\n• Your full name\n• Phone number or email address\n\nPlease provide this information to complete your booking.`,
+    params: {
+      ...params,
+      selected_slot: chosenSlot,
+      next_action: "COLLECT_CONTACT_INFO",
+    },
+  });
+}
+
+async function handleCollectContactInfo(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  const selectedDoctor = params.selected_doctor;
+  const selectedSlot = params.selected_slot;
+  const userText = extractUserText(body);
+
+  // Extract name and contact info from user text
+  // In a real implementation, you'd use better NLP or ask for specific fields
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+  const phoneRegex =
+    /(?:\+44|0)[\s-]?(?:\d{4}[\s-]?\d{6}|\d{3}[\s-]?\d{3}[\s-]?\d{4})/;
+
+  const email = userText.match(emailRegex)?.[0];
+  const phone = userText.match(phoneRegex)?.[0];
+
+  // Simple name extraction (everything before email/phone or first few words)
+  let name = userText.replace(emailRegex, "").replace(phoneRegex, "").trim();
+  if (name.length > 50) {
+    name = name.split(" ").slice(0, 3).join(" ");
+  }
+
+  if (!name || (!email && !phone)) {
+    return dfReply({
+      text: "Please provide your full name and either a phone number or email address. For example: 'John Smith, john@email.com' or 'Jane Doe, 07123 456789'",
+      params: { ...params, next_action: "COLLECT_CONTACT_INFO" },
+    });
+  }
+
+  // Book the appointment
+  const booking = await doctorsDb.bookSlot(selectedSlot.slot_id, {
+    name,
+    email,
+    phone,
+  });
+
+  if (booking.success) {
+    const dateFormatted = new Date(selectedSlot.date).toLocaleDateString(
+      "en-GB",
+      {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+      }
+    );
+
+    const timeFormatted = new Date(
+      `2000-01-01T${selectedSlot.time}:00`
+    ).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    return dfReply({
+      text: `🎉 **Appointment Confirmed!**\n\n📋 **Booking Reference:** ${
+        booking.booking_id
+      }\n👨‍⚕️ **Doctor:** ${selectedDoctor.name}\n🏥 **Clinic:** ${
+        selectedDoctor.clinic
+      }\n📅 **Date:** ${dateFormatted}\n🕐 **Time:** ${timeFormatted}\n👤 **Patient:** ${name}\n\nYou'll receive a confirmation ${
+        email ? "email" : "SMS"
+      } shortly. Please arrive 10 minutes early for your appointment.\n\nIs there anything else I can help you with?`,
+      params: {
+        ...params,
+        booking_confirmed: true,
+        booking_id: booking.booking_id,
+        next_action: "BOOKING_COMPLETE",
+      },
+    });
+  } else {
+    return dfReply({
+      text: "Sorry, that time slot was just taken by another patient. Would you like to choose a different time?",
+      params: { ...params, next_action: "CHOOSE_TIME" },
+    });
+  }
 }
 
 // ---- Main webhook handler --------------------------------------------------
@@ -627,6 +1084,22 @@ functions.http("appointmentWebhook", async (req, res) => {
       case "FIND_DOCTORS":
       case "2": // Handle when user types "2" for doctors
         result = await handleShowDoctors(req.body);
+        break;
+      case "CHOOSE_DOCTOR":
+      case "SELECT_DOCTOR":
+        result = await handleChooseDoctor(req.body);
+        break;
+      case "CHOOSE_DATE":
+      case "SELECT_DATE":
+        result = await handleChooseDate(req.body);
+        break;
+      case "CHOOSE_TIME":
+      case "SELECT_TIME":
+        result = await handleChooseTime(req.body);
+        break;
+      case "PROVIDE_CONTACT":
+      case "COLLECT_CONTACT_INFO":
+        result = await handleCollectContactInfo(req.body);
         break;
       case "CONFIRM_YES":
         // Handle when user says "yes" after getting advice
@@ -672,6 +1145,18 @@ functions.http("appointmentWebhook", async (req, res) => {
           text: "Please choose either:\n\n1. **Get medical advice** for your symptoms\n2. **Show available doctors** for an appointment\n\nYou can type '1', '2', 'advice', or 'doctors'.",
           params: { ...params },
         });
+      } else if (params.next_action === "OFFER_DOCTORS") {
+        // User is choosing a doctor from the list
+        result = await handleChooseDoctor(req.body);
+      } else if (params.next_action === "CHOOSE_DATE") {
+        // User is choosing a date from the calendar
+        result = await handleChooseDate(req.body);
+      } else if (params.next_action === "CHOOSE_TIME") {
+        // User is choosing a time slot
+        result = await handleChooseTime(req.body);
+      } else if (params.next_action === "COLLECT_CONTACT_INFO") {
+        // User is providing contact information
+        result = await handleCollectContactInfo(req.body);
       } else {
         result = dfReply({
           text: "I can help you find healthcare services. Try describing your symptoms.",

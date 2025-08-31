@@ -13,7 +13,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/5B73FF/FFFFFF?text=Dr.E",
     bio: "Dr. Carter specializes in comprehensive dental care with a focus on preventive dentistry and cosmetic treatments.",
     modalities: ["in_person"],
-    next_available: "Today 1:30 PM",
+    availability: {
+      "2025-09-02": ["09:00", "10:30", "14:00", "15:30"],
+      "2025-09-03": ["09:00", "11:00", "13:30", "16:00"],
+      "2025-09-04": ["08:30", "10:00", "14:30"],
+      "2025-09-05": ["09:30", "11:30", "15:00", "16:30"],
+      "2025-09-06": ["09:00", "13:00", "14:30"],
+    },
   },
   {
     id: "den-002",
@@ -26,7 +32,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/00B074/FFFFFF?text=Dr.J",
     bio: "Dr. Wilson provides advanced dental treatments including orthodontics and oral surgery.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Tomorrow 9:00 AM",
+    availability: {
+      "2025-09-02": ["10:00", "11:30", "15:00"],
+      "2025-09-03": ["09:30", "14:00", "16:30"],
+      "2025-09-04": ["08:00", "10:30", "13:00", "15:30"],
+      "2025-09-05": ["09:00", "11:00", "14:30"],
+      "2025-09-09": ["10:00", "13:30", "15:00", "16:00"],
+    },
   },
   {
     id: "den-003",
@@ -39,7 +51,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/FFC107/FFFFFF?text=Dr.S",
     bio: "Dr. Bennett specializes in restorative dentistry and pediatric dental care with over 10 years experience.",
     modalities: ["in_person"],
-    next_available: "Friday 3:45 PM",
+    availability: {
+      "2025-09-03": ["09:00", "10:30", "15:45"],
+      "2025-09-04": ["08:30", "11:00", "14:00", "16:30"],
+      "2025-09-05": ["09:30", "13:00", "15:30"],
+      "2025-09-06": ["10:00", "11:30", "14:30", "16:00"],
+      "2025-09-10": ["09:00", "10:30", "13:30"],
+    },
   },
 
   // General Practitioners
@@ -54,7 +72,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/DC3545/FFFFFF?text=Dr.L",
     bio: "Dr. Morgan provides comprehensive primary care with expertise in family medicine and preventive health.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Today 2:15 PM",
+    availability: {
+      "2025-09-02": ["08:30", "10:00", "14:15", "16:30"],
+      "2025-09-03": ["09:00", "11:30", "13:00", "15:30"],
+      "2025-09-04": ["08:00", "10:30", "14:00", "16:00"],
+      "2025-09-05": ["09:30", "11:00", "13:30", "15:00"],
+      "2025-09-06": ["08:30", "10:00", "14:30", "16:30"],
+    },
   },
   {
     id: "gp-002",
@@ -67,7 +91,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/6C757D/FFFFFF?text=Dr.A",
     bio: "Dr. Collins focuses on chronic disease management and men's health with a patient-centered approach.",
     modalities: ["in_person"],
-    next_available: "Tomorrow 10:00 AM",
+    availability: {
+      "2025-09-02": ["09:00", "11:00", "15:00"],
+      "2025-09-03": ["10:00", "13:30", "16:00"],
+      "2025-09-04": ["08:30", "10:30", "14:30"],
+      "2025-09-05": ["09:30", "11:30", "15:30"],
+      "2025-09-09": ["09:00", "13:00", "14:00"],
+    },
   },
   {
     id: "gp-003",
@@ -80,7 +110,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/17A2B8/FFFFFF?text=Dr.R",
     bio: "Dr. Hayes specializes in women's health and family planning with extensive experience in community medicine.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Today 4:30 PM",
+    availability: {
+      "2025-09-02": ["09:30", "11:30", "16:30"],
+      "2025-09-03": ["08:00", "10:00", "14:00", "15:30"],
+      "2025-09-04": ["09:00", "11:00", "13:30", "16:00"],
+      "2025-09-05": ["10:30", "14:30", "16:30"],
+      "2025-09-06": ["08:30", "11:30", "15:00"],
+    },
   },
   {
     id: "gp-004",
@@ -93,7 +129,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/28A745/FFFFFF?text=Dr.D",
     bio: "Dr. Kumar provides holistic family medicine with special interests in diabetes care and mental health.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Friday 8:45 AM",
+    availability: {
+      "2025-09-03": ["08:45", "10:15", "13:45", "15:15"],
+      "2025-09-04": ["09:00", "11:30", "14:00", "16:30"],
+      "2025-09-05": ["08:30", "10:00", "13:00", "15:30"],
+      "2025-09-06": ["09:30", "11:00", "14:30", "16:00"],
+      "2025-09-09": ["08:45", "10:30", "13:30"],
+    },
   },
 
   // Dermatologists
@@ -108,7 +150,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/E83E8C/FFFFFF?text=Dr.S",
     bio: "Dr. Patel is a leading dermatologist specializing in skin cancer detection and cosmetic dermatology.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Today 11:00 AM",
+    availability: {
+      "2025-09-02": ["11:00", "14:30", "16:00"],
+      "2025-09-03": ["09:30", "11:30", "15:00"],
+      "2025-09-04": ["10:00", "13:00", "14:30", "16:30"],
+      "2025-09-05": ["09:00", "11:00", "15:30"],
+      "2025-09-06": ["10:30", "13:30", "15:00"],
+    },
   },
   {
     id: "der-002",
@@ -121,7 +169,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/6F42C1/FFFFFF?text=Dr.M",
     bio: "Dr. Thompson focuses on complex skin conditions and dermatopathology with research interests in eczema treatment.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Tomorrow 2:30 PM",
+    availability: {
+      "2025-09-02": ["10:30", "14:00", "15:30"],
+      "2025-09-04": ["09:00", "11:30", "13:30", "16:00"],
+      "2025-09-05": ["10:00", "14:30", "16:30"],
+      "2025-09-06": ["09:30", "11:00", "15:00"],
+      "2025-09-09": ["10:30", "13:00", "14:30"],
+    },
   },
 
   // ENT Specialists
@@ -136,9 +190,14 @@ export const doctors = [
     image: "https://placehold.co/150x150/FD7E14/FFFFFF?text=Dr.H",
     bio: "Dr. Foster specializes in advanced ENT procedures including sinus surgery and hearing restoration.",
     modalities: ["in_person"],
-    next_available: "Tomorrow 1:15 PM",
+    availability: {
+      "2025-09-02": ["10:00", "13:15", "15:45"],
+      "2025-09-03": ["09:30", "11:30", "14:30", "16:30"],
+      "2025-09-04": ["08:30", "10:30", "13:00", "15:00"],
+      "2025-09-05": ["09:00", "11:00", "14:00", "16:00"],
+      "2025-09-06": ["10:30", "13:30", "15:30"],
+    },
   },
- 
 
   // Ophthalmologists
   {
@@ -152,7 +211,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/007BFF/FFFFFF?text=Dr.A",
     bio: "Dr. Price is an expert in retinal surgery and diabetic eye disease with cutting-edge treatment approaches.",
     modalities: ["in_person"],
-    next_available: "Tomorrow 12:00 PM",
+    availability: {
+      "2025-09-02": ["09:00", "12:00", "15:00"],
+      "2025-09-03": ["10:30", "13:30", "16:00"],
+      "2025-09-04": ["08:30", "11:00", "14:30"],
+      "2025-09-05": ["09:30", "12:30", "15:30"],
+      "2025-09-06": ["10:00", "13:00", "16:30"],
+    },
   },
   {
     id: "oph-002",
@@ -165,7 +230,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/FF6B6B/FFFFFF?text=Dr.C",
     bio: "Dr. Lee specializes in cataract surgery and glaucoma management with the latest minimally invasive techniques.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Friday 2:45 PM",
+    availability: {
+      "2025-09-03": ["09:00", "11:00", "14:45"],
+      "2025-09-04": ["10:30", "13:00", "15:30", "17:00"],
+      "2025-09-05": ["08:30", "10:00", "14:00", "16:30"],
+      "2025-09-06": ["09:30", "12:00", "15:00"],
+      "2025-09-10": ["10:00", "13:30", "16:00"],
+    },
   },
 
   // Cardiologists
@@ -180,7 +251,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/845EC8/FFFFFF?text=Dr.E",
     bio: "Dr. Turner is a leading cardiologist specializing in interventional cardiology and heart failure management.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Friday 9:30 AM",
+    availability: {
+      "2025-09-02": ["09:30", "11:30", "14:30"],
+      "2025-09-03": ["10:00", "13:00", "15:30", "17:00"],
+      "2025-09-04": ["08:30", "10:30", "14:00", "16:00"],
+      "2025-09-05": ["09:00", "11:00", "15:00"],
+      "2025-09-06": ["10:30", "13:30", "16:30"],
+    },
   },
   {
     id: "car-002",
@@ -193,7 +270,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/F39C12/FFFFFF?text=Dr.A",
     bio: "Dr. Morrison focuses on preventive cardiology and cardiac rehabilitation with a holistic treatment approach.",
     modalities: ["in_person"],
-    next_available: "Monday 10:15 AM",
+    availability: {
+      "2025-09-03": ["09:00", "10:15", "14:30"],
+      "2025-09-04": ["11:00", "13:30", "16:00"],
+      "2025-09-05": ["08:30", "10:30", "15:30"],
+      "2025-09-06": ["09:30", "11:30", "14:00", "16:30"],
+      "2025-09-09": ["10:15", "13:00", "15:00"],
+    },
   },
 
   // Neurologists
@@ -208,7 +291,13 @@ export const doctors = [
     image: "https://placehold.co/150x150/E74C3C/FFFFFF?text=Dr.V",
     bio: "Dr. Singh specializes in movement disorders and multiple sclerosis with expertise in the latest therapeutic approaches.",
     modalities: ["in_person", "telemedicine"],
-    next_available: "Friday 1:00 PM",
+    availability: {
+      "2025-09-02": ["10:00", "13:00", "15:30"],
+      "2025-09-03": ["09:30", "11:30", "14:30", "16:30"],
+      "2025-09-04": ["08:30", "10:30", "13:30", "15:00"],
+      "2025-09-05": ["09:00", "11:00", "14:00", "16:00"],
+      "2025-09-06": ["10:30", "13:00", "15:30"],
+    },
   },
   {
     id: "neu-002",
@@ -221,6 +310,12 @@ export const doctors = [
     image: "https://placehold.co/150x150/16A085/FFFFFF?text=Dr.T",
     bio: "Dr. Evans focuses on epilepsy treatment and cognitive disorders with research interests in neurodegenerative diseases.",
     modalities: ["in_person"],
-    next_available: "Tuesday 3:30 PM",
+    availability: {
+      "2025-09-04": ["09:00", "11:30", "15:30"],
+      "2025-09-05": ["10:00", "13:00", "16:00"],
+      "2025-09-06": ["08:30", "10:30", "14:30"],
+      "2025-09-09": ["09:30", "11:00", "15:00", "17:00"],
+      "2025-09-10": ["10:30", "13:30", "16:30"],
+    },
   },
 ];

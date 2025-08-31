@@ -13,7 +13,7 @@ import DashboardPage from "./pages/DashboardPage"; // Import DashboardPage
 
 // Placeholder page components for other routes
 import DoctorsPage from "./pages/DoctorsPage";
-import ServicesPage from "./pages/PagesComingSoon";
+import ServicesPage from "./pages/ServicesPage";
 import AboutPage from "./pages/PagesComingSoon";
 
 function App() {
