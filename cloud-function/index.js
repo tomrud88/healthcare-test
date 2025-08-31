@@ -1,6 +1,12 @@
 const functions = require("@google-cloud/functions-framework");
 const { VertexAI } = require("@google-cloud/vertexai");
 
+// Initialize Vertex AI once
+const vertexAI = new VertexAI({
+  project: "healthcare-patient-portal",
+  location: "us-central1",
+});
+
 // ---- Helpers (CX response, trigger, formatting) ---------------------------
 function dfReply({ text, params = {}, targetPage = null }) {
   const out = {
@@ -272,44 +278,20 @@ async function handleDescribeSymptom(body) {
     });
   }
 
-  // Classify specialty based on symptoms
+  // Use AI to classify specialty based on symptoms - much smarter than regex!
   let specialty, specialtyDisplayName;
 
-  if (/tooth|teeth|gum|dent/i.test(userText)) {
-    specialty = "dentist";
-    specialtyDisplayName = "Dentists";
-  } else if (/skin|rash|acne|derma|mole|eczema|psoriasis/i.test(userText)) {
-    specialty = "dermatologist";
-    specialtyDisplayName = "Dermatologists";
-  } else if (
-    /eye|vision|ophthal|sight|blind|cataract|glaucoma/i.test(userText)
-  ) {
-    specialty = "ophthalmologist";
-    specialtyDisplayName = "Ophthalmologists";
-  } else if (
-    /ear|nose|throat|sinus|\bent\b|runny nose|hearing problems|tinnitus|vertigo/i.test(
-      userText
-    )
-  ) {
-    specialty = "ent";
-    specialtyDisplayName = "ENT Specialists";
-  } else if (
-    /heart|chest pain|palpitation|cardiac|cardiovascular|blood pressure|hypertension/i.test(
-      userText
-    )
-  ) {
-    specialty = "cardiologist";
-    specialtyDisplayName = "Cardiologists";
-  } else if (
-    /brain|headache|migraine|seizure|neurological|memory|confusion|stroke|epilepsy/i.test(
-      userText
-    )
-  ) {
-    specialty = "neurologist";
-    specialtyDisplayName = "Neurologists";
-  } else {
-    specialty = "gp";
-    specialtyDisplayName = "General Practitioners";
+  try {
+    const aiClassification = await classifySymptomWithAI(userText);
+    specialty = aiClassification.specialty;
+    specialtyDisplayName = aiClassification.displayName;
+  } catch (error) {
+    console.error(
+      "AI classification failed, falling back to basic patterns:",
+      error
+    );
+    // Fallback to basic classification if AI fails
+    ({ specialty, specialtyDisplayName } = classifySymptomBasic(userText));
   }
 
   // Ask user what they want to do
@@ -329,18 +311,11 @@ async function handleProvideAdvice(body) {
   const symptoms = params.symptoms || "your symptoms";
   const specialty = params.specialty || "gp";
 
-  // Get AI-powered advice
-  let advice = "";
-  try {
-    advice = await getAIAdvice(symptoms, specialty);
-  } catch (error) {
-    console.error("Error getting AI advice:", error);
-    // Fallback to basic advice if AI fails
-    advice = getBasicAdvice(specialty);
-  }
+  // Use enhanced pattern-based advice until AI models are accessible
+  const advice = getEnhancedAdvice(symptoms, specialty);
 
   return dfReply({
-    text: `Here's some advice for ${symptoms}:\n\n${advice}\n\n**Important:** This is general information only. Please consult with a healthcare professional for proper medical advice.\n\nWould you still like to see available doctors for an appointment?`,
+    text: `${advice}\n\nWould you still like to see available doctors for an appointment?`,
     params: {
       ...params,
       advice_given: true,
@@ -349,8 +324,8 @@ async function handleProvideAdvice(body) {
   });
 }
 
-// AI-powered advice function using Vertex AI (Gemini)
-async function getAIAdvice(symptoms, specialty) {
+// AI-powered symptom classification using Vertex AI
+async function classifySymptomWithAI(symptoms) {
   try {
     // Initialize Vertex AI
     const vertexAI = new VertexAI({
@@ -360,43 +335,163 @@ async function getAIAdvice(symptoms, specialty) {
 
     // Get the Gemini model
     const model = vertexAI.preview.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-pro",
       generation_config: {
-        max_output_tokens: 300,
+        max_output_tokens: 100,
+        temperature: 0.1, // Low temperature for consistent classification
+        top_p: 0.8,
+      },
+    });
+
+    const prompt = `You are a medical triage assistant. Classify the following symptom or health concern into the most appropriate medical specialty.
+
+Available specialties:
+- dentist (for teeth, gums, dental issues, toothache, dental pain, etc.)
+- dermatologist (for skin, rash, acne, moles, etc.)
+- ophthalmologist (for eyes, vision, sight issues, etc.)
+- ent (for ear, nose, throat, sinus, hearing issues, etc.)
+- cardiologist (for heart, chest pain, cardiovascular issues, etc.)
+- neurologist (for brain, headache, neurological issues, etc.)
+- gp (for general health concerns, unknown symptoms, or multiple systems)
+
+User input: "${symptoms}"
+
+Respond with ONLY a JSON object in this exact format:
+{"specialty": "dentist", "displayName": "Dentists"}
+
+Be very accurate with spelling detection - "totache", "toothach", "tootache" should all map to "dentist".`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text().trim();
+
+    // Parse the JSON response
+    const classification = JSON.parse(text);
+
+    // Validate the response
+    if (classification.specialty && classification.displayName) {
+      console.log(`AI classified "${symptoms}" as ${classification.specialty}`);
+      return classification;
+    } else {
+      throw new Error("Invalid AI response format");
+    }
+  } catch (error) {
+    console.error("AI classification error:", error);
+    throw error;
+  }
+}
+
+// Fallback basic classification function
+function classifySymptomBasic(userText) {
+  if (
+    /tooth|teeth|gum|dent|totache|toothach|toothake|tootache|dental|cavity|cavities|molar|wisdom.*tooth|root.*canal/i.test(
+      userText
+    )
+  ) {
+    return { specialty: "dentist", specialtyDisplayName: "Dentists" };
+  } else if (
+    /skin|rash|acne|derma|mole|eczema|psoriasis|spot|bump|itch|hive|blister|wart/i.test(
+      userText
+    )
+  ) {
+    return {
+      specialty: "dermatologist",
+      specialtyDisplayName: "Dermatologists",
+    };
+  } else if (
+    /eye|vision|ophthal|sight|blind|cataract|glaucoma|blurry|blur|see|optical/i.test(
+      userText
+    )
+  ) {
+    return {
+      specialty: "ophthalmologist",
+      specialtyDisplayName: "Ophthalmologists",
+    };
+  } else if (
+    /ear|nose|throat|sinus|\bent\b|runny nose|hearing problems|tinnitus|vertigo|stuffy|congestion|sore throat|earache|earach/i.test(
+      userText
+    )
+  ) {
+    return { specialty: "ent", specialtyDisplayName: "ENT Specialists" };
+  } else if (
+    /heart|chest pain|palpitation|cardiac|cardiovascular|blood pressure|hypertension|shortness.*breath|breath.*short/i.test(
+      userText
+    )
+  ) {
+    return { specialty: "cardiologist", specialtyDisplayName: "Cardiologists" };
+  } else if (
+    /brain|headache|migraine|seizure|neurological|memory|confusion|stroke|epilepsy|headach|migrain|dizzy|dizziness/i.test(
+      userText
+    )
+  ) {
+    return { specialty: "neurologist", specialtyDisplayName: "Neurologists" };
+  } else {
+    return { specialty: "gp", specialtyDisplayName: "General Practitioners" };
+  }
+}
+
+// AI-powered advice function using Vertex AI (Gemini)
+async function getAIAdvice(symptoms, specialty) {
+  try {
+    // Get the Gemini model
+    const model = vertexAI.preview.getGenerativeModel({
+      model: "gemini-pro",
+      generation_config: {
+        max_output_tokens: 400,
         temperature: 0.3,
         top_p: 0.8,
       },
     });
 
-    const prompt = `You are a helpful medical assistant providing general first-aid advice. 
+    const prompt = `You are a helpful medical assistant providing targeted first-aid advice. 
 
 User symptoms: "${symptoms}"
 Recommended specialist: ${specialty}
 
-Please provide:
-- 4-5 practical, safe home care suggestions
-- When to seek immediate medical attention
+Based on the specialist type (${specialty}), provide personalized advice that's specifically relevant to their condition:
+
+For Dental issues: Focus on oral pain management, dental hygiene, what to avoid
+For Respiratory issues: Focus on breathing, throat care, humidity, rest
+For Skin issues: Focus on skin protection, avoiding irritants, gentle care
+For General/GP issues: Provide comprehensive general wellness advice for the specific symptoms
+For Heart issues: Focus on rest, monitoring symptoms, avoiding strain
+For Mental Health: Focus on coping strategies, stress management, support
+
+Please provide a complete response with:
+- A caring introduction: "Here's some advice for your [specific condition/symptoms]:"
+- 4-6 practical, safe home care suggestions specifically for their symptoms (e.g., for leg pain: RICE method, elevation, gentle movement, etc.)
+- Clear guidance on when to seek immediate medical attention
+- A professional disclaimer: "**Important:** This is general guidance only. Please consult with a healthcare professional for proper evaluation and treatment specific to your condition."
 - Keep advice general and non-diagnostic
-- Format as bullet points starting with •
+- Format suggestions as bullet points starting with •
 - Be empathetic but professional
+- Handle misspellings naturally
 
-Important: Always emphasize this is not a substitute for professional medical advice and they should consult with a healthcare professional.
-
-Provide helpful, actionable advice in a caring tone.`;
+Provide helpful, actionable advice that directly addresses their specific symptoms in a caring tone.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
     if (text && text.trim()) {
+      console.log(`AI generated advice for "${symptoms}":`, text.trim());
       return text.trim();
     } else {
       throw new Error("Empty response from AI");
     }
   } catch (error) {
     console.error("Vertex AI error:", error);
-    // Fallback to enhanced static advice
-    return getEnhancedAdvice(symptoms, specialty);
+    // Simple fallback without calling hardcoded function
+    return `For your symptoms related to ${symptoms}:
+
+• Rest and monitor your symptoms carefully
+• Stay hydrated and maintain a healthy diet
+• Apply basic first aid if appropriate (cold/warm compress, gentle care)
+• Take over-the-counter medications as directed if suitable
+• Keep track of when symptoms started and any changes
+• Seek medical attention if symptoms worsen or persist
+
+**Important:** This is general guidance only. Please consult with a healthcare professional for proper evaluation and treatment specific to your condition.`;
   }
 }
 
@@ -427,6 +522,12 @@ function getEnhancedAdvice(symptoms, specialty) {
     } else {
       return "**For headache relief:**\n• Rest in a quiet, dark room\n• Apply a cold or warm compress to your head or neck\n• Stay hydrated - drink water steadily\n• Take over-the-counter pain relief (acetaminophen or ibuprofen) as directed\n• Try gentle neck and shoulder stretches\n• **Seek medical care if headaches are frequent, severe, or come with fever, vision changes, or neck stiffness**";
     }
+  } else if (
+    /leg pain|leg ache|leg hurt|muscle pain|shin|calf|thigh/i.test(symptoms)
+  ) {
+    return "**For leg pain:**\n• Rest and elevate your leg above heart level when possible\n• Apply ice for 15-20 minutes if there's swelling or acute injury\n• Use heat therapy for muscle stiffness (warm bath or heating pad)\n• Take over-the-counter pain relief (ibuprofen or acetaminophen) as directed\n• Gently stretch and move the leg to prevent stiffness\n• Wear compression stockings if you have circulation issues\n• **Seek immediate care for severe pain, numbness, tingling, or if leg is cold/blue**";
+  } else if (/back pain|spine|lower back|upper back/i.test(symptoms)) {
+    return "**For back pain:**\n• Apply ice for the first 24-48 hours, then switch to heat\n• Take over-the-counter anti-inflammatory medication as directed\n• Keep moving with gentle activities like walking\n• Sleep on your side with a pillow between your knees\n• Practice good posture when sitting and standing\n• Avoid bed rest for more than 1-2 days\n• **Seek immediate care for severe pain with numbness, weakness, or bowel/bladder issues**";
   } else {
     return "**General symptom management:**\n• Rest and give your body time to recover\n• Stay well hydrated with water or clear fluids\n• Monitor your symptoms and note any changes\n• Take your temperature if you feel unwell\n• Consider over-the-counter medications appropriate for your symptoms\n• **Contact a healthcare provider if symptoms worsen, persist, or you develop new concerning symptoms**";
   }
