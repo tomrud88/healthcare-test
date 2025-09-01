@@ -4,6 +4,20 @@ import { Link } from "react-router-dom";
 import { doctors } from "../data/doctors";
 
 const ServicesPage = () => {
+  // Map service titles to doctor specialty values
+  const getSpecialtyFromService = (serviceTitle) => {
+    const specialtyMap = {
+      "General Practice": "General Practitioner",
+      "Dental Care": "Dentist",
+      Dermatology: "Dermatologist",
+      "ENT (Ear, Nose & Throat)": "ENT Specialist",
+      Ophthalmology: "Ophthalmologist",
+      Cardiology: "Cardiologist",
+      Neurology: "Neurologist",
+    };
+    return specialtyMap[serviceTitle] || "";
+  };
+
   // Define comprehensive service information for each specialty
   const services = [
     {
@@ -267,12 +281,22 @@ const ServicesPage = () => {
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Link
                       to="/book-appointment"
+                      state={{
+                        selectedSpecialty: getSpecialtyFromService(
+                          service.title
+                        ),
+                      }}
                       className={`px-6 py-3 bg-gradient-to-r ${service.colors} text-white rounded-lg hover:shadow-lg transition-all duration-300 text-center font-semibold no-underline`}
                     >
                       Book Appointment
                     </Link>
                     <Link
                       to="/doctors"
+                      state={{
+                        selectedSpecialty: getSpecialtyFromService(
+                          service.title
+                        ),
+                      }}
                       className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center font-semibold no-underline"
                     >
                       View Specialists ({getDoctorCount(service.title)})

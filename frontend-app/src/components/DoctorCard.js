@@ -34,7 +34,30 @@ const DoctorCard = ({ doctor }) => {
 
   const handleBookingComplete = (booking) => {
     setBookingComplete(true);
-    console.log("Booking completed:", booking);
+    console.log("DoctorCard: Booking completed:", booking);
+
+    // Send confirmation message to chat and auto-open it
+    const confirmationMessage = `✅ Appointment successfully booked with ${doctor.name} on ${booking.date} at ${booking.time}. Booking ID: ${booking.id}`;
+    console.log(
+      "DoctorCard: Sending confirmation to chat:",
+      confirmationMessage
+    );
+
+    // Dispatch custom event for booking confirmation (same as AppointmentBookingPage)
+    const confirmationEvent = new CustomEvent("bookingConfirmation", {
+      detail: {
+        text: confirmationMessage,
+        timestamp: new Date().toISOString(),
+        id: `doctor-booking-${booking.id}`,
+      },
+    });
+    console.log(
+      "DoctorCard: Dispatching booking confirmation event:",
+      confirmationEvent.detail
+    );
+    window.dispatchEvent(confirmationEvent);
+    console.log("DoctorCard: Event dispatched successfully");
+
     // Here you could also update the UI or sync with backend
   };
 

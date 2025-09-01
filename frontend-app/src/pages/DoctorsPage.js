@@ -1,11 +1,21 @@
 // src/pages/DoctorsPage.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { doctors } from "../data/doctors";
 import DoctorCard from "../components/DoctorCard";
 
 export default function DoctorsPage() {
+  const location = useLocation();
   const [selectedSpecialty, setSelectedSpecialty] = useState("All");
   const [selectedCity, setSelectedCity] = useState("All");
+
+  // Handle pre-selected specialty from Services page
+  useEffect(() => {
+    const preSelectedSpecialty = location.state?.selectedSpecialty;
+    if (preSelectedSpecialty) {
+      setSelectedSpecialty(preSelectedSpecialty);
+    }
+  }, [location.state?.selectedSpecialty]);
 
   // Get unique specialties and cities
   const specialties = [

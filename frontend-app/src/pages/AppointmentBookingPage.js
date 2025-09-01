@@ -1,11 +1,16 @@
 // frontend-app/src/pages/AppointmentBookingPage.js
 import React, { useState, useContext, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
 import { doctors } from "../data/doctors";
 import CustomCalendar from "../components/CustomCalendar";
 
 function AppointmentBookingPage() {
+  // Get location state for pre-selected doctor
+  const location = useLocation();
+  const preSelectedDoctor = location.state?.selectedDoctor;
+
+  // Destructure from AuthContext
   // Destructure from AuthContext
   const { currentUser, loading: authLoading } = useContext(AuthContext);
 
@@ -36,6 +41,22 @@ function AppointmentBookingPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Handle pre-selected doctor from navigation
+  useEffect(() => {
+    if (preSelectedDoctor) {
+      setSelectedSpecialty(preSelectedDoctor.specialty);
+      setSelectedDoctor(preSelectedDoctor);
+    }
+  }, [preSelectedDoctor]);
+
+  // Handle pre-selected specialty from Services page
+  useEffect(() => {
+    const preSelectedSpecialty = location.state?.selectedSpecialty;
+    if (preSelectedSpecialty && !preSelectedDoctor) {
+      setSelectedSpecialty(preSelectedSpecialty);
+    }
+  }, [location.state?.selectedSpecialty, preSelectedDoctor]);
 
   // Get unique specialties from doctors data
   const specialties = [...new Set(doctors.map((doctor) => doctor.specialty))];
@@ -116,6 +137,25 @@ function AppointmentBookingPage() {
       setSuccessMessage(
         `🎉 Appointment confirmed! You'll receive a confirmation email shortly. Booking ID: ${newBooking.id}`
       );
+
+      // Send confirmation message to chat and auto-open it
+      const confirmationMessage = `✅ Appointment successfully booked with ${selectedDoctor.name} on ${selectedDate} at ${selectedTime}. Booking ID: ${newBooking.id}`;
+      console.log("Sending confirmation to chat:", confirmationMessage); // Debug log
+
+      // Dispatch custom event for booking confirmation
+      const confirmationEvent = new CustomEvent("bookingConfirmation", {
+        detail: {
+          text: confirmationMessage,
+          timestamp: new Date().toISOString(),
+          id: `booking-${newBooking.id}`,
+        },
+      });
+      console.log(
+        "Dispatching booking confirmation event:",
+        confirmationEvent.detail
+      );
+      window.dispatchEvent(confirmationEvent);
+      console.log("Event dispatched successfully");
 
       // Clear the form after successful booking
       setSelectedDate("");

@@ -1,9 +1,48 @@
 // src/components/FloatingChatButton.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ChatAgent from "./ChatAgent";
+import { useChatContext } from "../ChatContext";
 
 const FloatingChatButton = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const { shouldAutoOpen, clearAutoOpen } = useChatContext();
+  const [pendingMessage, setPendingMessage] = useState(null);
+
+  // Auto-open chat for important messages
+  useEffect(() => {
+    if (shouldAutoOpen && !isChatOpen) {
+      setIsChatOpen(true);
+      clearAutoOpen();
+    }
+  }, [shouldAutoOpen, isChatOpen, clearAutoOpen]);
+
+  // Listen for custom booking confirmation events
+  useEffect(() => {
+    const handleBookingConfirmation = (event) => {
+      console.log(
+        "FloatingChatButton: Received booking confirmation event:",
+        event.detail
+      );
+      setPendingMessage(event.detail);
+      console.log("FloatingChatButton: Set pending message and opening chat");
+      setIsChatOpen(true);
+    };
+
+    console.log(
+      "FloatingChatButton: Adding event listener for bookingConfirmation"
+    );
+    window.addEventListener("bookingConfirmation", handleBookingConfirmation);
+
+    return () => {
+      console.log(
+        "FloatingChatButton: Removing event listener for bookingConfirmation"
+      );
+      window.removeEventListener(
+        "bookingConfirmation",
+        handleBookingConfirmation
+      );
+    };
+  }, []);
 
   const openChat = () => {
     setIsChatOpen(true);
@@ -55,7 +94,14 @@ const FloatingChatButton = () => {
       )}
 
       {/* Chat Agent Component */}
-      <ChatAgent isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatAgent
+        isOpen={isChatOpen}
+        onClose={() => {
+          setIsChatOpen(false);
+          setPendingMessage(null); // Clear pending message when chat closes
+        }}
+        pendingMessage={pendingMessage}
+      />
     </>
   );
 };

@@ -6,9 +6,13 @@ import React, {
   useContext,
   useCallback,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
+import { useChatContext } from "../ChatContext";
 
-const ChatAgent = ({ isOpen, onClose }) => {
+const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
+  const navigate = useNavigate();
+  const { externalMessages, clearExternalMessages } = useChatContext();
   const [messages, setMessages] = useState([]); // Start with empty messages
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +76,7 @@ const ChatAgent = ({ isOpen, onClose }) => {
         isBot: true,
         timestamp: new Date(),
       };
-      setMessages([welcomeMessage]);
+      setMessages((prev) => [welcomeMessage, ...prev]); // Prepend welcome message instead of replacing all
     } catch (error) {
       console.error("Error getting welcome message from Dialogflow:", error);
 
@@ -84,7 +88,7 @@ const ChatAgent = ({ isOpen, onClose }) => {
         timestamp: new Date(),
         isError: true,
       };
-      setMessages([fallbackMessage]);
+      setMessages((prev) => [fallbackMessage, ...prev]); // Prepend welcome message instead of replacing all
     } finally {
       setIsLoading(false);
       // Auto-focus the input field after welcome message
@@ -98,12 +102,76 @@ const ChatAgent = ({ isOpen, onClose }) => {
       setTimeout(() => inputRef.current?.focus(), 100);
 
       // Send welcome message to Dialogflow when chat opens for the first time
+      // But wait a bit to allow external messages to load first
       if (!hasInitialized) {
-        setHasInitialized(true);
-        sendWelcomeMessage();
+        setTimeout(() => {
+          setHasInitialized(true);
+          sendWelcomeMessage();
+        }, 200); // Small delay to let external messages load first
       }
     }
   }, [isOpen, hasInitialized, sendWelcomeMessage]);
+
+  // Handle external messages from other components
+  useEffect(() => {
+    if (externalMessages.length > 0) {
+      console.log("External messages received:", externalMessages); // Debug log
+
+      // Add external messages to the chat history permanently
+      setMessages((prev) => {
+        // Check if these messages are already in the chat to avoid duplicates
+        const existingIds = new Set(prev.map((msg) => msg.id));
+        const newMessages = externalMessages
+          .filter((msg) => !existingIds.has(msg.id))
+          .map((msg) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp), // Convert timestamp back to Date object
+            isBot: false, // Make sure it shows as user message (confirmation)
+          }));
+
+        console.log("Adding new messages to chat:", newMessages); // Debug log
+
+        if (newMessages.length > 0) {
+          clearExternalMessages(); // Clear from external queue after adding to main chat
+          return [...prev, ...newMessages];
+        }
+        return prev;
+      });
+    }
+  }, [externalMessages, clearExternalMessages]);
+
+  // Load external messages when chat first opens
+  useEffect(() => {
+    if (isOpen && externalMessages.length > 0) {
+      // This will trigger the effect above to load any pending external messages
+    }
+  }, [isOpen, externalMessages.length]);
+
+  // Handle pending message from FloatingChatButton
+  useEffect(() => {
+    if (pendingMessage && isOpen) {
+      console.log("ChatAgent: Adding pending message to chat:", pendingMessage);
+      const messageToAdd = {
+        id: pendingMessage.id || `pending-${Date.now()}`,
+        text: pendingMessage.text,
+        isBot: false, // Show as user message (confirmation)
+        timestamp: new Date(pendingMessage.timestamp || new Date()),
+        isExternal: true,
+      };
+
+      // Add the message to chat
+      setMessages((prev) => {
+        // Check if message already exists
+        const exists = prev.some((msg) => msg.id === messageToAdd.id);
+        if (!exists) {
+          console.log("ChatAgent: Adding message to chat:", messageToAdd);
+          return [...prev, messageToAdd];
+        }
+        console.log("ChatAgent: Message already exists, skipping");
+        return prev;
+      });
+    }
+  }, [pendingMessage, isOpen]);
 
   const sendMessage = async (messageText) => {
     if (!messageText.trim()) return;
@@ -195,7 +263,9 @@ const ChatAgent = ({ isOpen, onClose }) => {
   };
 
   const formatTime = (timestamp) => {
-    return timestamp.toLocaleTimeString([], {
+    // Ensure timestamp is a Date object
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -210,7 +280,87 @@ const ChatAgent = ({ isOpen, onClose }) => {
   ];
 
   const handleQuickAction = (action) => {
-    sendMessage(action);
+    if (action === "Book an appointment") {
+      // Add user message to chat
+      const userMessage = {
+        id: Date.now(),
+        text: action,
+        isBot: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+
+      // Add bot response message
+      setTimeout(() => {
+        const botMessage = {
+          id: Date.now() + 1,
+          text: "📋 Taking you to the booking page where you can book your appointment with our specialists...",
+          isBot: true,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+
+        // Navigate after showing the message for 2 seconds
+        setTimeout(() => {
+          navigate("/book-appointment");
+          onClose(); // Close the chat when navigating
+        }, 2000);
+      }, 500);
+    } else if (action === "Find a doctor") {
+      // Add user message to chat
+      const userMessage = {
+        id: Date.now(),
+        text: action,
+        isBot: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+
+      // Add bot response message
+      setTimeout(() => {
+        const botMessage = {
+          id: Date.now() + 1,
+          text: "👩‍⚕️ Taking you to our doctors page where you can browse all available specialists...",
+          isBot: true,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+
+        // Navigate after showing the message for 2 seconds
+        setTimeout(() => {
+          navigate("/doctors");
+          onClose(); // Close the chat when navigating
+        }, 2000);
+      }, 500);
+    } else if (action === "View my appointments") {
+      // Add user message to chat
+      const userMessage = {
+        id: Date.now(),
+        text: action,
+        isBot: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+
+      // Add bot response message
+      setTimeout(() => {
+        const botMessage = {
+          id: Date.now() + 1,
+          text: "📅 Taking you to your appointments page...",
+          isBot: true,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+
+        // Navigate after showing the message for 1.5 seconds
+        setTimeout(() => {
+          navigate("/my-appointments");
+          onClose(); // Close the chat when navigating
+        }, 1500);
+      }, 500);
+    } else {
+      sendMessage(action);
+    }
   };
 
   if (!isOpen) return null;
