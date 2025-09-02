@@ -3,6 +3,7 @@ import React, { useState, useContext, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
 import { doctors } from "../data/doctors";
+import { PatientService } from "../services/patientService"; // Import PatientService
 import CustomCalendar from "../components/CustomCalendar";
 
 function AppointmentBookingPage() {
@@ -107,7 +108,7 @@ function AppointmentBookingPage() {
     }
 
     try {
-      // Simulate booking process - in a real app this would call your booking API
+      // Create appointment data
       const appointmentData = {
         patientId: currentUser.uid,
         patientEmail: currentUser.email,
@@ -121,25 +122,34 @@ function AppointmentBookingPage() {
         notes: notes,
       };
 
-      // For now, we'll just show success - in production you'd call your booking API
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-
-      // Store booking in localStorage for demo purposes
-      const bookings = JSON.parse(localStorage.getItem("userBookings") || "[]");
-      const newBooking = {
-        id: `BK-${Date.now()}`,
-        ...appointmentData,
-        bookedAt: new Date().toISOString(),
+      // Save booking to Firestore using PatientService
+      console.log("Saving booking to database...", appointmentData);
+      
+      // Format booking data for PatientService
+      const bookingData = {
+        doctorId: selectedDoctor.id,
+        doctorName: selectedDoctor.name,
+        specialty: selectedSpecialty,
+        appointmentDate: selectedDate,
+        appointmentTime: selectedTime,
+        clinic: selectedDoctor.clinic,
+        city: selectedDoctor.city,
+        notes: notes,
       };
-      bookings.push(newBooking);
-      localStorage.setItem("userBookings", JSON.stringify(bookings));
+
+      // Save to Firestore database
+      const result = await PatientService.addBooking(currentUser.uid, bookingData);
+      console.log("Booking saved to database:", result);
+
+      // Generate booking ID from the result or timestamp
+      const bookingId = result.booking?.bookingId || `BK-${Date.now()}`;
 
       setSuccessMessage(
-        `🎉 Appointment confirmed! You'll receive a confirmation email shortly. Booking ID: ${newBooking.id}`
+        `🎉 Appointment confirmed! You'll receive a confirmation email shortly. Booking ID: ${bookingId}`
       );
 
       // Send confirmation message to chat and auto-open it
-      const confirmationMessage = `✅ Appointment successfully booked with ${selectedDoctor.name} on ${selectedDate} at ${selectedTime}. Booking ID: ${newBooking.id}`;
+      const confirmationMessage = `✅ Appointment successfully booked with ${selectedDoctor.name} on ${selectedDate} at ${selectedTime}. Booking ID: ${bookingId}`;
       console.log("Sending confirmation to chat:", confirmationMessage); // Debug log
 
       // Dispatch custom event for booking confirmation
@@ -147,7 +157,7 @@ function AppointmentBookingPage() {
         detail: {
           text: confirmationMessage,
           timestamp: new Date().toISOString(),
-          id: `booking-${newBooking.id}`,
+          id: `booking-${bookingId}`,
         },
       });
       console.log(

@@ -1,10 +1,10 @@
 // frontend-app/src/pages/RegisterPage.js
 
-import React, { useState, useContext, useEffect } from "react"; // Import useEffect
+import React, { useState, useEffect } from "react"; // Import useEffect
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig"; // Import your Firebase auth instance
-import { AuthContext } from "../AuthContext"; // Import AuthContext to update user state
+import { PatientService } from "../services/patientService";
 
 export default function RegisterPage() {
   // State variables for form inputs
@@ -24,7 +24,6 @@ export default function RegisterPage() {
   const [confirmPasswordShown, setConfirmPasswordShown] = useState(false);
 
   const navigate = useNavigate(); // Hook for programmatic navigation
-  const { getIdToken } = useContext(AuthContext); // Get getIdToken from AuthContext
 
   // UseEffect to clear the email, password, and confirm password fields on component mount
   useEffect(() => {
@@ -64,53 +63,23 @@ export default function RegisterPage() {
       const user = userCredential.user;
       console.log("Registered user with Firebase Auth:", user);
 
-      // Get the Firebase ID token for authentication with your backend
-      const idToken = await user.getIdToken();
-      if (!idToken) {
-        throw new Error(
-          "Failed to get authentication token after registration."
-        );
-      }
+      // 2. Create patient profile using PatientService
+      const patientData = {
+        name: firstName,
+        surname: lastName,
+        email: user.email,
+        phoneNumber: phone,
+        address: `${address1}${address2 ? ", " + address2 : ""}`,
+        city: city,
+        postcode: postcode,
+        bookings: [],
+      };
 
-      // 2. Call your backend Cloud Function to create/update patient profile in Firestore
-      const createProfileUrl =
-        process.env.REACT_APP_CREATE_PATIENT_PROFILE_API_URL;
-
-      if (!createProfileUrl) {
-        throw new Error(
-          "Missing CREATE_PATIENT_PROFILE_API_URL environment variable."
-        );
-      }
-
-      const response = await fetch(createProfileUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`, // Include Firebase ID Token for backend authentication
-        },
-        body: JSON.stringify({
-          uid: user.uid, // Firebase User ID
-          email: user.email,
-          firstName: firstName,
-          lastName: lastName,
-          phoneNumber: phone, // Using 'phone' state variable
-          address1: address1,
-          address2: address2,
-          city: city,
-          postcode: postcode,
-        }),
-      });
-
-      if (!response.ok) {
-        // If the backend call failed, try to parse the error message
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "Failed to create patient profile on backend."
-        );
-      }
-
-      const data = await response.json();
-      console.log("Backend response for profile creation:", data.message);
+      const result = await PatientService.createPatientProfile(
+        user.uid,
+        patientData
+      );
+      console.log("Patient profile created:", result.message);
 
       // 3. Navigate to the login page after successful registration and profile creation
       navigate("/login");

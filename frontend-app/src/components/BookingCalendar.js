@@ -1,7 +1,9 @@
 // src/components/BookingCalendar.js
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { createPortal } from "react-dom";
+import { AuthContext } from "../AuthContext";
+import { PatientService } from "../services/patientService";
 
 const BookingCalendar = ({ doctor, onClose, onBookingComplete }) => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -12,6 +14,10 @@ const BookingCalendar = ({ doctor, onClose, onBookingComplete }) => {
     phone: "",
   });
   const [step, setStep] = useState(1); // 1: Select Date, 2: Select Time, 3: Enter Details, 4: Confirmation
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Get current user from AuthContext
+  const { currentUser } = useContext(AuthContext);
 
   // Get available dates from doctor's availability
   const availableDates = Object.keys(doctor.availability || {}).sort();
@@ -33,18 +39,68 @@ const BookingCalendar = ({ doctor, onClose, onBookingComplete }) => {
       return;
     }
 
-    // In a real app, you would make an API call here
-    const booking = {
-      id: `BK-${Date.now()}`,
-      doctor: doctor,
-      date: selectedDate,
-      time: selectedTime,
-      patient: patientInfo,
-    };
+    setIsLoading(true);
 
-    setStep(4);
-    if (onBookingComplete) {
-      onBookingComplete(booking);
+    try {
+      // Create booking data
+      const bookingData = PatientService.formatBookingData(
+        doctor.id,
+        doctor.name,
+        selectedDate,
+        selectedTime,
+        doctor.specialty
+      );
+
+      // If user is authenticated, save booking to their profile
+      if (currentUser) {
+        try {
+          console.log("Attempting to save booking for user:", currentUser.uid);
+          console.log("Booking data:", bookingData);
+
+          const result = await PatientService.addBooking(
+            currentUser.uid,
+            bookingData
+          );
+          console.log("Booking saved successfully. Result:", result);
+        } catch (error) {
+          console.error("Error saving booking to patient profile:", error);
+          alert(`Error saving booking: ${error.message}`);
+          // Continue with booking even if saving to profile fails
+        }
+      } else {
+        console.log("No current user found, skipping booking save");
+      }
+
+      // Create booking object for UI
+      const booking = {
+        id: bookingData.bookingId || `BK-${Date.now()}`,
+        doctor: doctor,
+        date: selectedDate,
+        time: selectedTime,
+        patient: patientInfo,
+        status: "confirmed",
+      };
+
+      setStep(4);
+
+      // Dispatch custom event for chat confirmation
+      window.dispatchEvent(
+        new CustomEvent("bookingConfirmation", {
+          detail: {
+            booking,
+            message: `Appointment booked with ${doctor.name} on ${selectedDate} at ${selectedTime}`,
+          },
+        })
+      );
+
+      if (onBookingComplete) {
+        onBookingComplete(booking);
+      }
+    } catch (error) {
+      console.error("Error during booking:", error);
+      alert("There was an error processing your booking. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

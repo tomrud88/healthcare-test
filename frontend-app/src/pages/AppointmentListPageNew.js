@@ -72,8 +72,10 @@ const AppointmentListPage = () => {
     try {
       // For now, just show a message that cancellation is not implemented yet
       // TODO: Implement proper cancellation with backend support
-      setError("Appointment cancellation feature is coming soon. Please contact the clinic directly.");
-      
+      setError(
+        "Appointment cancellation feature is coming soon. Please contact the clinic directly."
+      );
+
       // Refresh the list of appointments
       await fetchAppointments();
     } catch (err) {
@@ -92,15 +94,15 @@ const AppointmentListPage = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-20">
         <div className="container mx-auto px-6 text-center">
-          <h1 className="text-5xl font-bold mb-4">
-            My Appointments
-          </h1>
+          <h1 className="text-5xl font-bold mb-4">My Appointments</h1>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto">
             View and manage your upcoming medical appointments
           </p>
           <div className="flex justify-center items-center mt-8 space-x-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-200">{appointments.length}</div>
+              <div className="text-3xl font-bold text-blue-200">
+                {appointments.length}
+              </div>
               <div className="text-blue-100">Appointments</div>
             </div>
             <div className="text-center">
@@ -128,7 +130,9 @@ const AppointmentListPage = () => {
           {authLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Checking login status...</span>
+              <span className="ml-3 text-gray-600">
+                Checking login status...
+              </span>
             </div>
           ) : !currentUser ? (
             <div className="bg-blue-50 border border-blue-200 text-blue-700 px-6 py-8 rounded-xl text-center shadow-sm">
@@ -139,15 +143,19 @@ const AppointmentListPage = () => {
           ) : loading && appointments.length === 0 ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-              <span className="ml-3 text-gray-600">Loading your appointments...</span>
+              <span className="ml-3 text-gray-600">
+                Loading your appointments...
+              </span>
             </div>
           ) : error && appointments.length === 0 ? (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-6 py-8 rounded-xl text-center shadow-sm">
               <div className="text-4xl mb-4">📅</div>
-              <h3 className="text-xl font-semibold mb-2">No Appointments Yet</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                No Appointments Yet
+              </h3>
               <p>{error}</p>
-              <button 
-                onClick={() => window.location.href = '/book-appointment'}
+              <button
+                onClick={() => (window.location.href = "/book-appointment")}
                 className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Book Your First Appointment
@@ -163,7 +171,11 @@ const AppointmentListPage = () => {
             <div className="grid gap-6">
               {appointments.map((appointment, index) => (
                 <div
-                  key={appointment.bookingId || appointment.id || `booking-${index}`}
+                  key={
+                    appointment.bookingId ||
+                    appointment.id ||
+                    `booking-${index}`
+                  }
                   className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300"
                 >
                   {/* Appointment Header */}
@@ -171,21 +183,25 @@ const AppointmentListPage = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-2xl font-bold mb-2">
-                          {appointment.doctorName || appointment.doctor || "Doctor Appointment"}
+                          {appointment.doctorName ||
+                            appointment.doctor ||
+                            "Doctor Appointment"}
                         </h3>
                         <p className="text-blue-100 text-lg">
                           {appointment.specialty || "General Consultation"}
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                          appointment.status === 'confirmed' 
-                            ? 'bg-green-100 text-green-800' 
-                            : appointment.status === 'cancelled'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {appointment.status || 'Confirmed'}
+                        <div
+                          className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                            appointment.status === "confirmed"
+                              ? "bg-green-100 text-green-800"
+                              : appointment.status === "cancelled"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-yellow-100 text-yellow-800"
+                          }`}
+                        >
+                          {appointment.status || "Confirmed"}
                         </div>
                       </div>
                     </div>
@@ -201,19 +217,23 @@ const AppointmentListPage = () => {
                             <span className="text-blue-600 text-lg">📅</span>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500 font-medium">Date</p>
+                            <p className="text-sm text-gray-500 font-medium">
+                              Date
+                            </p>
                             <p className="text-lg font-semibold text-gray-800">
                               {appointment.date || appointment.appointmentDate}
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
                             <span className="text-indigo-600 text-lg">⏰</span>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500 font-medium">Time</p>
+                            <p className="text-sm text-gray-500 font-medium">
+                              Time
+                            </p>
                             <p className="text-lg font-semibold text-gray-800">
                               {appointment.time || appointment.appointmentTime}
                             </p>
@@ -228,21 +248,31 @@ const AppointmentListPage = () => {
                             <span className="text-purple-600 text-lg">📍</span>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500 font-medium">Location</p>
+                            <p className="text-sm text-gray-500 font-medium">
+                              Location
+                            </p>
                             <p className="text-lg font-semibold text-gray-800">
-                              {appointment.place || appointment.location || "Healthcare Center"}
+                              {appointment.place ||
+                                appointment.location ||
+                                "Healthcare Center"}
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                             <span className="text-green-600 text-lg">📋</span>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500 font-medium">Booked</p>
+                            <p className="text-sm text-gray-500 font-medium">
+                              Booked
+                            </p>
                             <p className="text-lg font-semibold text-gray-800">
-                              {new Date(appointment.createdAt || appointment.created_at || Date.now()).toLocaleDateString()}
+                              {new Date(
+                                appointment.createdAt ||
+                                  appointment.created_at ||
+                                  Date.now()
+                              ).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
@@ -252,7 +282,11 @@ const AppointmentListPage = () => {
                     {/* Action Buttons */}
                     <div className="mt-6 flex justify-end space-x-3">
                       <button
-                        onClick={() => handleCancelAppointment(appointment.bookingId || appointment.id)}
+                        onClick={() =>
+                          handleCancelAppointment(
+                            appointment.bookingId || appointment.id
+                          )
+                        }
                         disabled={loading || appointment.status === "cancelled"}
                         className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                           appointment.status === "cancelled"
@@ -260,7 +294,9 @@ const AppointmentListPage = () => {
                             : "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
                         }`}
                       >
-                        {appointment.status === "cancelled" ? "Cancelled" : "Cancel Appointment"}
+                        {appointment.status === "cancelled"
+                          ? "Cancelled"
+                          : "Cancel Appointment"}
                       </button>
                       <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         Reschedule
