@@ -12,6 +12,8 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState(""); // Optional
   const [city, setCity] = useState("");
@@ -47,6 +49,18 @@ export default function RegisterPage() {
     setError(""); // Clear any previous errors
     setLoading(true); // Set loading to true while processing
 
+    console.log("Form submission started");
+    console.log("Current form values:");
+    console.log("- firstName:", firstName);
+    console.log("- lastName:", lastName);
+    console.log("- email:", email);
+    console.log("- phone:", phone);
+    console.log("- dateOfBirth:", dateOfBirth);
+    console.log("- gender:", gender);
+    console.log("- address1:", address1);
+    console.log("- city:", city);
+    console.log("- postcode:", postcode);
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       setLoading(false);
@@ -69,11 +83,16 @@ export default function RegisterPage() {
         surname: lastName,
         email: user.email,
         phoneNumber: phone,
+        dateOfBirth: dateOfBirth || null,
+        gender: gender || null,
         address: `${address1}${address2 ? ", " + address2 : ""}`,
         city: city,
         postcode: postcode,
         bookings: [],
       };
+
+      console.log("Creating patient profile with data:", patientData);
+      console.log("Gender value being sent:", gender);
 
       const result = await PatientService.createPatientProfile(
         user.uid,
@@ -177,6 +196,46 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="date-of-birth"
+                className="block text-blue-600 font-semibold mb-2"
+              >
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                id="date-of-birth"
+                name="date-of-birth"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="gender"
+                className="block text-blue-600 font-semibold mb-2"
+              >
+                Gender
+              </label>
+              <select
+                id="gender"
+                name="gender"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            </div>
           </div>
 
           <div>

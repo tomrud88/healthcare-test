@@ -86,8 +86,13 @@ export class PatientService {
         body: JSON.stringify(requestBody),
       });
 
-      console.log("PatientService.addBooking - Response status:", response.status);
-      console.log("PatientService.addBooking - Response headers:", [...response.headers.entries()]);
+      console.log(
+        "PatientService.addBooking - Response status:",
+        response.status
+      );
+      console.log("PatientService.addBooking - Response headers:", [
+        ...response.headers.entries(),
+      ]);
 
       const data = await response.json();
       console.log("PatientService.addBooking - Response data:", data);
@@ -136,6 +141,38 @@ export class PatientService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+  }
+
+  // Get patient profile data from Firestore
+  static async getPatientProfile(patientId) {
+    try {
+      const response = await fetch(
+        `${PATIENT_API_URL}?patientId=${patientId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Patient not found, return null
+          return null;
+        }
+        throw new Error(`Failed to fetch patient data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Retrieved patient profile data:", data);
+
+      return data;
+    } catch (error) {
+      console.error("Error fetching patient profile:", error);
+      // Return null instead of throwing to allow page to load
+      return null;
+    }
   }
 
   // Get patient appointments from Firestore

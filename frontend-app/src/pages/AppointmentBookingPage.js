@@ -124,7 +124,7 @@ function AppointmentBookingPage() {
 
       // Save booking to Firestore using PatientService
       console.log("Saving booking to database...", appointmentData);
-      
+
       // Format booking data for PatientService
       const bookingData = {
         doctorId: selectedDoctor.id,
@@ -138,7 +138,10 @@ function AppointmentBookingPage() {
       };
 
       // Save to Firestore database
-      const result = await PatientService.addBooking(currentUser.uid, bookingData);
+      const result = await PatientService.addBooking(
+        currentUser.uid,
+        bookingData
+      );
       console.log("Booking saved to database:", result);
 
       // Generate booking ID from the result or timestamp

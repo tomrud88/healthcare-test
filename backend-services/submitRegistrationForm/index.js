@@ -137,12 +137,6 @@ functions.http("submitRegistrationForm", async (req, res) => {
       city: formData.city,
       postcode: formData.postcode,
 
-      // Additional fields (optional)
-      dateOfBirth: formData.dateOfBirth || null,
-      emergencyContact: formData.emergencyContact || null,
-      medicalHistory: formData.medicalHistory || null,
-      allergies: formData.allergies || null,
-
       // Bookings Information
       bookings: formData.bookings || [],
 
@@ -151,10 +145,57 @@ functions.http("submitRegistrationForm", async (req, res) => {
       updatedAt: Firestore.FieldValue.serverTimestamp(),
     };
 
+    // Add optional fields only if they have values
+    if (formData.dateOfBirth) {
+      patientData.dateOfBirth = formData.dateOfBirth;
+    }
+    if (formData.gender) {
+      patientData.gender = formData.gender;
+    }
+    if (formData.bloodType) {
+      patientData.bloodType = formData.bloodType;
+    }
+    if (formData.emergencyContactName) {
+      patientData.emergencyContactName = formData.emergencyContactName;
+    }
+    if (formData.emergencyContactPhone) {
+      patientData.emergencyContactPhone = formData.emergencyContactPhone;
+    }
+    if (formData.emergencyContactRelation) {
+      patientData.emergencyContactRelation = formData.emergencyContactRelation;
+    }
+    if (formData.insuranceProvider) {
+      patientData.insuranceProvider = formData.insuranceProvider;
+    }
+    if (formData.insurancePolicyNumber) {
+      patientData.insurancePolicyNumber = formData.insurancePolicyNumber;
+    }
+    if (formData.medicalConditions) {
+      patientData.medicalConditions = formData.medicalConditions;
+    }
+    if (formData.currentMedications) {
+      patientData.currentMedications = formData.currentMedications;
+    }
+    if (formData.emergencyContact) {
+      patientData.emergencyContact = formData.emergencyContact;
+    }
+    if (formData.medicalHistory) {
+      patientData.medicalHistory = formData.medicalHistory;
+    }
+    if (formData.allergies) {
+      patientData.allergies = formData.allergies;
+    }
+
+    console.log("Final patient data being saved to Firestore:");
+    console.log(JSON.stringify(patientData, null, 2));
+    console.log("Gender value from formData:", formData.gender);
+    console.log("Gender value in patientData:", patientData.gender);
+
     // Update the document with new registration data.
     // Using `merge: true` will add/update fields without overwriting the entire document.
     await patientRef.set(patientData, { merge: true });
 
+    console.log("Data successfully written to Firestore");
     console.log(
       `Patient profile created/updated for: ${formData.name} ${formData.surname} (${patientId})`
     );

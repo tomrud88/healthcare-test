@@ -10,7 +10,7 @@ import AppointmentListPage from "./pages/AppointmentListPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Landing from "./pages/Landing";
-import DashboardPage from "./pages/DashboardPage"; // Import DashboardPage
+import ProfilePage from "./pages/ProfilePage"; // Import ProfilePage
 
 // Placeholder page components for other routes
 import DoctorsPage from "./pages/DoctorsPage";
@@ -34,14 +34,16 @@ function App() {
                 path="/book-appointment"
                 element={<AppointmentBookingPage />}
               />
+              <Route path="/appointments" element={<AppointmentListPage />} />
               <Route
                 path="/my-appointments"
                 element={<AppointmentListPage />}
               />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />{" "}
-              {/* Route for DashboardPage */}
+              <Route path="/dashboard" element={<ProfilePage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              {/* Route for ProfilePage */}
               {/* Placeholder routes for Navbar links */}
               <Route path="/doctors" element={<DoctorsPage />} />
               <Route path="/services" element={<ServicesPage />} />

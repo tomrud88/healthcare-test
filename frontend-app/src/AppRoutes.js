@@ -1,14 +1,21 @@
 // frontend-app/src/AppRoutes.js
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './AuthContext'; // Import useAuth hook
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useAuth } from "./AuthContext"; // Import useAuth hook
 
 // Import your page components (we'll create these next)
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import AppointmentBookingPage from './pages/AppointmentBookingPage';
-import DigitalRegistrationPage from './pages/DigitalRegistrationPage';
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ProfilePage from "./pages/ProfilePage";
+import AppointmentBookingPage from "./pages/AppointmentBookingPage";
+import AppointmentListPage from "./pages/AppointmentListPage";
+import DigitalRegistrationPage from "./pages/DigitalRegistrationPage";
+import Landing from "./pages/Landing";
 
 // A simple PrivateRoute component to protect routes
 const PrivateRoute = ({ children }) => {
@@ -29,15 +36,24 @@ function AppRoutes() {
     <Router>
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected Routes */}
         <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <PrivateRoute>
-              <DashboardPage />
+              <ProfilePage />
             </PrivateRoute>
           }
         />
@@ -50,6 +66,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/appointments"
+          element={
+            <PrivateRoute>
+              <AppointmentListPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/digital-registration"
           element={
             <PrivateRoute>
@@ -58,12 +82,12 @@ function AppRoutes() {
           }
         />
 
-        {/* Default redirect to dashboard if logged in, or login if not */}
+        {/* Default redirect to profile if logged in, or home if not */}
         <Route
           path="*"
           element={
             <PrivateRoute>
-              <Navigate to="/dashboard" />
+              <Navigate to="/profile" />
             </PrivateRoute>
           }
         />
