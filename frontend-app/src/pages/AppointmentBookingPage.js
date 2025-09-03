@@ -2,7 +2,7 @@
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
-import { doctors } from "../data/doctors";
+import { DoctorsService } from "../services/doctorsService"; // Use dynamic service instead of static data
 import { PatientService } from "../services/patientService"; // Import PatientService
 import CustomCalendar from "../components/CustomCalendar";
 
@@ -23,6 +23,11 @@ function AppointmentBookingPage() {
   const [notes, setNotes] = useState("");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
+  // State for doctors data
+  const [doctors, setDoctors] = useState([]);
+  const [doctorsLoading, setDoctorsLoading] = useState(true);
+  const [doctorsError, setDoctorsError] = useState(null);
+
   // Ref for date input container
   const dateInputRef = useRef(null);
 
@@ -41,6 +46,26 @@ function AppointmentBookingPage() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, []);
+
+  // Fetch doctors data on component mount
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setDoctorsLoading(true);
+        const allDoctors = await DoctorsService.getAllDoctors();
+        setDoctors(allDoctors);
+        setDoctorsError(null);
+      } catch (err) {
+        console.error("Error fetching doctors:", err);
+        setDoctorsError("Failed to load doctors. Please try again later.");
+        setDoctors([]);
+      } finally {
+        setDoctorsLoading(false);
+      }
+    };
+
+    fetchDoctors();
   }, []);
 
   // Handle pre-selected doctor from navigation
@@ -308,15 +333,23 @@ function AppointmentBookingPage() {
                     setSelectedTime("");
                   }}
                   required
-                  disabled={loading}
+                  disabled={loading || doctorsLoading}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value="">Select a specialty</option>
-                  {specialties.map((specialty) => (
-                    <option key={specialty} value={specialty}>
-                      {specialty}
-                    </option>
-                  ))}
+                  <option value="">
+                    {doctorsLoading
+                      ? "Loading specialties..."
+                      : doctorsError
+                      ? "Error loading specialties"
+                      : "Select a specialty"}
+                  </option>
+                  {!doctorsLoading &&
+                    !doctorsError &&
+                    specialties.map((specialty) => (
+                      <option key={specialty} value={specialty}>
+                        {specialty}
+                      </option>
+                    ))}
                 </select>
               </div>
 

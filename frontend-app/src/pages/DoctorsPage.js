@@ -1,13 +1,38 @@
 // src/pages/DoctorsPage.js
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { doctors } from "../data/doctors";
+import { DoctorsService } from "../services/doctorsService"; // Use dynamic service instead of static data
 import DoctorCard from "../components/DoctorCard";
 
 export default function DoctorsPage() {
   const location = useLocation();
   const [selectedSpecialty, setSelectedSpecialty] = useState("All");
   const [selectedCity, setSelectedCity] = useState("All");
+
+  // State for doctors data
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch doctors data on component mount
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const allDoctors = await DoctorsService.getAllDoctors();
+        setDoctors(allDoctors);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching doctors:", err);
+        setError("Failed to load doctors. Please try again later.");
+        setDoctors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   // Handle pre-selected specialty from Services page
   useEffect(() => {
@@ -131,7 +156,50 @@ export default function DoctorsPage() {
       {/* Doctors Grid */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-6">
-          {filteredDoctors.length > 0 ? (
+          {loading ? (
+            // Loading state
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={`loading-${index}`} className="animate-pulse">
+                  <div className="bg-white p-6 rounded-lg shadow-md">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            // Error state
+            <div className="text-center py-16">
+              <div className="text-red-600 mb-4">
+                <svg
+                  className="w-16 h-16 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.732 19c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                Unable to load doctors
+              </h3>
+              <p className="text-gray-600 mb-6">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : filteredDoctors.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredDoctors.map((doctor, index) => (
                 <div

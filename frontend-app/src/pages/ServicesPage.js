@@ -1,9 +1,33 @@
 // src/pages/ServicesPage.js
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { doctors } from "../data/doctors";
+import { DoctorsService } from "../services/doctorsService"; // Use dynamic service instead of static data
 
 const ServicesPage = () => {
+  // State for doctors data
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch doctors data on component mount
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const allDoctors = await DoctorsService.getAllDoctors();
+        setDoctors(allDoctors);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching doctors:", err);
+        setError("Failed to load doctor information.");
+        setDoctors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
   // Map service titles to doctor specialty values
   const getSpecialtyFromService = (serviceTitle) => {
     const specialtyMap = {
@@ -174,6 +198,9 @@ const ServicesPage = () => {
 
   // Get doctor count for each specialty
   const getDoctorCount = (serviceTitle) => {
+    if (loading) return "...";
+    if (error) return "N/A";
+
     const specialtyMap = {
       "General Practice": "General Practitioner",
       "Dental Care": "Dentist",

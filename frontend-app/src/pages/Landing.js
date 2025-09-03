@@ -1,13 +1,36 @@
 // src/pages/Landing.js
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom"; // Use Link for internal navigation
-import { doctors } from "../data/doctors"; // Assuming you still have this data
+import { DoctorsService } from "../services/doctorsService"; // Use dynamic service instead of static data
 import DoctorCard from "../components/DoctorCard"; // Re-using your DoctorCard component
 import PersonalizedContentDemo from "../components/PersonalizedContentDemo"; // Re-using your PersonalizedContentDemo component
 
 export default function Landing() {
-  // Get the first 4 doctors for the "Our Top Rated Doctors" section, as per HTML layout
-  const topDoctors = doctors.slice(0, 4);
+  // State for managing doctors data and loading
+  const [topDoctors, setTopDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch doctors data on component mount
+  useEffect(() => {
+    const fetchTopDoctors = async () => {
+      try {
+        setLoading(true);
+        const allDoctors = await DoctorsService.getAllDoctors();
+        // Get the first 4 doctors for the "Our Top Rated Doctors" section
+        setTopDoctors(allDoctors.slice(0, 4));
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching doctors:", err);
+        setError("Failed to load doctors. Please try again later.");
+        setTopDoctors([]); // Set empty array as fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopDoctors();
+  }, []);
 
   return (
     <div className="bg-white text-gray-800 font-sans">
@@ -533,15 +556,57 @@ export default function Landing() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {topDoctors.map((doctor, index) => (
-              <div
-                key={doctor.id}
-                className="animate-fade-in" // Keeping animation for now
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <DoctorCard doctor={doctor} />
+            {loading ? (
+              // Loading state
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={`loading-${index}`} className="animate-pulse">
+                  <div className="bg-white p-6 rounded-lg shadow-md">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                  </div>
+                </div>
+              ))
+            ) : error ? (
+              // Error state
+              <div className="col-span-full text-center py-8">
+                <div className="text-red-600 mb-4">
+                  <svg
+                    className="w-12 h-12 mx-auto mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.732 19c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-600">{error}</p>
               </div>
-            ))}
+            ) : topDoctors.length === 0 ? (
+              // No doctors found
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-600">
+                  No doctors available at the moment.
+                </p>
+              </div>
+            ) : (
+              // Success state - show doctors
+              topDoctors.map((doctor, index) => (
+                <div
+                  key={doctor.id}
+                  className="animate-fade-in" // Keeping animation for now
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <DoctorCard doctor={doctor} />
+                </div>
+              ))
+            )}
           </div>
           <div className="text-center mt-12">
             <Link
