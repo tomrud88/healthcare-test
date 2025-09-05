@@ -1,6 +1,6 @@
 // src/components/BookingCalendar.js
 
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AuthContext } from "../AuthContext";
 import { PatientService } from "../services/patientService";
@@ -21,6 +21,74 @@ const BookingCalendar = ({ doctor, onClose, onBookingComplete }) => {
 
   // Get available dates from doctor's availability
   const availableDates = Object.keys(doctor.availability || {}).sort();
+
+  // Auto-populate patient info when user is logged in
+  useEffect(() => {
+    const loadPatientInfo = async () => {
+      if (currentUser) {
+        try {
+          // First, set basic info from Firebase Auth
+          setPatientInfo((prev) => ({
+            ...prev,
+            email: currentUser.email || "",
+          }));
+
+          // Then try to fetch more detailed profile info
+          const patientProfile = await PatientService.getPatientProfile(
+            currentUser.uid
+          );
+
+          console.log("Patient profile data:", patientProfile);
+
+          if (patientProfile) {
+            // Extract name from various possible fields
+            let fullName = "";
+
+            // Check for name + surname combination (most likely from our registration)
+            if (patientProfile.name && patientProfile.surname) {
+              fullName = `${patientProfile.name} ${patientProfile.surname}`;
+            }
+            // Check for firstName + lastName combination
+            else if (patientProfile.firstName && patientProfile.lastName) {
+              fullName = `${patientProfile.firstName} ${patientProfile.lastName}`;
+            }
+            // Check for single name field
+            else if (patientProfile.name) {
+              fullName = patientProfile.name;
+            }
+            // Check for firstName only
+            else if (patientProfile.firstName) {
+              fullName = patientProfile.firstName;
+            }
+
+            console.log("Extracted full name:", fullName);
+            console.log("Available fields:", Object.keys(patientProfile));
+            console.log("Name field:", patientProfile.name);
+            console.log("Surname field:", patientProfile.surname);
+
+            setPatientInfo((prev) => ({
+              ...prev,
+              name: fullName || prev.name,
+              email: patientProfile.email || currentUser.email || prev.email,
+              phone:
+                patientProfile.phoneNumber ||
+                patientProfile.phone ||
+                prev.phone,
+            }));
+          }
+        } catch (error) {
+          console.error("Error loading patient info:", error);
+          // Still set basic email from Firebase Auth even if profile fetch fails
+          setPatientInfo((prev) => ({
+            ...prev,
+            email: currentUser.email || "",
+          }));
+        }
+      }
+    };
+
+    loadPatientInfo();
+  }, [currentUser]);
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -115,11 +183,8 @@ const BookingCalendar = ({ doctor, onClose, onBookingComplete }) => {
   };
 
   const formatTime = (timeString) => {
-    return new Date(`2000-01-01T${timeString}:00`).toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    // Time is already in the correct format (e.g., "09:00 AM"), just return it
+    return timeString;
   };
 
   return createPortal(
@@ -248,6 +313,18 @@ const BookingCalendar = ({ doctor, onClose, onBookingComplete }) => {
           {step === 3 && (
             <div>
               <h3 className="text-lg font-semibold mb-4">Your Information</h3>
+              {currentUser && (
+                <div className="bg-green-50 border border-green-200 p-3 rounded-xl mb-4">
+                  <div className="text-sm text-green-800">
+                    ✅ <strong>Logged in as:</strong> {currentUser.email}
+                    <br />
+                    <span className="text-green-600">
+                      Your information has been automatically filled in below.
+                      Please review and update if needed.
+                    </span>
+                  </div>
+                </div>
+              )}
               <div className="bg-blue-50 p-4 rounded-xl mb-6">
                 <div className="text-sm text-blue-800">
                   <strong>Selected Appointment:</strong>

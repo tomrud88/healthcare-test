@@ -18,15 +18,35 @@ const DoctorCard = ({ doctor }) => {
     const firstTime = doctor.availability[firstDate][0];
 
     if (firstDate && firstTime) {
-      const dateTime = new Date(`${firstDate}T${firstTime}:00+00:00`);
-      return dateTime.toLocaleString("en-GB", {
-        timeZone: "Europe/London",
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      try {
+        // Convert 12-hour format (e.g., "09:00 AM") to 24-hour format for Date constructor
+        const convertTo24Hour = (time12h) => {
+          const [time, modifier] = time12h.split(" ");
+          let [hours, minutes] = time.split(":");
+          if (hours === "12") {
+            hours = "00";
+          }
+          if (modifier === "PM") {
+            hours = parseInt(hours, 10) + 12;
+          }
+          return `${hours}:${minutes}`;
+        };
+
+        const time24h = convertTo24Hour(firstTime);
+        const dateTime = new Date(`${firstDate}T${time24h}:00`);
+
+        return dateTime.toLocaleString("en-GB", {
+          timeZone: "Europe/London",
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch (error) {
+        console.error("Error formatting date:", error);
+        return `${firstDate} at ${firstTime}`;
+      }
     }
 
     return "No availability";

@@ -1,26 +1,29 @@
 // frontend-app/src/pages/LoginPage.js
-import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig";
+import { useNavigate, Link } from "react-router-dom";
 
 function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError(""); // Clear previous errors
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard'); // Redirect to the DashboardPage on successful login
+      navigate("/dashboard"); // Redirect to the DashboardPage on successful login
     } catch (err) {
       // Firebase error codes can be more user-friendly
       let errorMessage = "Login failed. Please check your credentials.";
-      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
-        errorMessage = "Invalid email or password.";
+      if (err.code === "auth/user-not-found") {
+        errorMessage =
+          "No account found with this email. Please register first.";
+      } else if (err.code === "auth/wrong-password") {
+        errorMessage = "Invalid password. Please check your credentials.";
       } else if (err.code === "auth/invalid-email") {
         errorMessage = "Please enter a valid email address.";
       }
@@ -36,8 +39,11 @@ function LoginPage() {
           Sign in to your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
-          <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 no-underline">
+          Or{" "}
+          <Link
+            to="/register"
+            className="font-medium text-blue-600 hover:text-blue-500 no-underline"
+          >
             register here
           </Link>
         </p>
@@ -79,9 +85,7 @@ function LoginPage() {
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm text-center">
-              {error}
-            </div>
+            <div className="text-red-600 text-sm text-center">{error}</div>
           )}
 
           <div>

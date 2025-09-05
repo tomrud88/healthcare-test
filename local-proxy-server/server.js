@@ -4,6 +4,7 @@
  * Webhooks exposed:
  *   - POST /webhook/symptoms-analyzer        (tag: "symptoms-analyzer")
  *   - POST /webhook/check-doctor-availability
+ *   - POST /webhook/doctor-availability-search (tag: "get-doctor-availability-params" | "search-doctors-by-criteria")
  *   - POST /dialogflow-proxy                 (legacy proxy support)
  * Contract:
  *   Reads/writes sessionInfo.parameters:
@@ -14,6 +15,8 @@
  *     - insurance_provider (@sys.any)
  *     - final_status: "covered"|"not_covered"
  *     - user_name (@given_name), dob (@sys.date)
+ *     - specialty, location, date (for doctor availability search)
+ *     - search_results, search_specialty, search_location, search_date
  * Navigation:
  *   Return session params to trigger page routes, or set targetPage/targetFlow explicitly.
  */
@@ -531,6 +534,331 @@ app.post("/webhook/check-doctor-availability", async (req, res) => {
   res.json(response);
 });
 
+/**
+ * POST /webhook/doctor-availability-search
+ * Handles doctor availability searches with specialty, date, and location
+ */
+app.post("/webhook/doctor-availability-search", async (req, res) => {
+  console.log("=== DOCTOR AVAILABILITY SEARCH WEBHOOK ===");
+  console.log("Request:", JSON.stringify(req.body, null, 2));
+
+  const sessionParams = req.body.sessionInfo?.parameters || {};
+  const tag = req.body.fulfillmentInfo?.tag;
+
+  try {
+    let response = {};
+
+    if (tag === "get-doctor-availability-params") {
+      // Initial request for doctor availability - ask for parameters
+      response = {
+        fulfillmentResponse: {
+          messages: [
+            {
+              text: {
+                text: [
+                  "Please provide the following information to find available doctors:",
+                ],
+              },
+            },
+            {
+              text: {
+                text: [
+                  "1. **Doctor specialty** (e.g., Cardiologist, Dermatologist, General Practitioner)\n2. **Preferred date** (e.g., today, tomorrow, or specific date)\n3. **Location/City** (e.g., London, Manchester)",
+                ],
+              },
+            },
+            {
+              text: {
+                text: [
+                  "You can say something like: 'I need a cardiologist in London for tomorrow'",
+                ],
+              },
+            },
+          ],
+        },
+        sessionInfo: {
+          parameters: {
+            ...sessionParams,
+            availability_flow_started: true,
+          },
+        },
+      };
+    } else if (tag === "search-doctors-by-criteria") {
+      // Process the search with provided parameters
+      const specialty =
+        sessionParams.specialty || sessionParams.doctor_specialty;
+      const location = sessionParams.location || sessionParams.city;
+      const dateParam = sessionParams.date || sessionParams.preferred_date;
+
+      console.log("Search parameters:", { specialty, location, dateParam });
+
+      if (!specialty || !location || !dateParam) {
+        // Missing parameters - ask for them specifically
+        let missingParams = [];
+        if (!specialty) missingParams.push("specialty");
+        if (!location) missingParams.push("location");
+        if (!dateParam) missingParams.push("date");
+
+        response = {
+          fulfillmentResponse: {
+            messages: [
+              {
+                text: {
+                  text: [
+                    `I need more information. Please provide: ${missingParams.join(
+                      ", "
+                    )}`,
+                  ],
+                },
+              },
+            ],
+          },
+          sessionInfo: {
+            parameters: sessionParams,
+          },
+        };
+      } else {
+        // All parameters available - search for doctors
+        const searchResults = await searchAvailableDoctors(
+          specialty,
+          location,
+          dateParam
+        );
+
+        if (searchResults.success && searchResults.doctors.length > 0) {
+          let responseText = `I found ${searchResults.doctors.length} ${specialty} doctor(s) available in ${location} on ${searchResults.formattedDate}:\n\n`;
+
+          searchResults.doctors.forEach((doctor, index) => {
+            responseText += `**${index + 1}. Dr. ${doctor.name}**\n`;
+            responseText += `   📍 ${doctor.location}\n`;
+            responseText += `   ⭐ Rating: ${doctor.rating}/5\n`;
+            responseText += `   🕒 Available times: ${doctor.availableTimes.join(
+              ", "
+            )}\n\n`;
+          });
+
+          responseText +=
+            "Which doctor would you like to book an appointment with? You can say the doctor's name or number.";
+
+          response = {
+            fulfillmentResponse: {
+              messages: [
+                {
+                  text: {
+                    text: [responseText],
+                  },
+                },
+              ],
+            },
+            sessionInfo: {
+              parameters: {
+                ...sessionParams,
+                search_results: searchResults.doctors,
+                search_specialty: specialty,
+                search_location: location,
+                search_date: searchResults.formattedDate,
+                next_action: "select_doctor",
+              },
+            },
+          };
+        } else {
+          response = {
+            fulfillmentResponse: {
+              messages: [
+                {
+                  text: {
+                    text: [
+                      `Sorry, I couldn't find any ${specialty} doctors available in ${location} on the requested date. Would you like to try a different date or location?`,
+                    ],
+                  },
+                },
+              ],
+            },
+            sessionInfo: {
+              parameters: {
+                ...sessionParams,
+                search_failed: true,
+              },
+            },
+          };
+        }
+      }
+    }
+
+    console.log("=== RESPONSE ===");
+    console.log(JSON.stringify(response, null, 2));
+    res.json(response);
+  } catch (error) {
+    console.error("Error in doctor availability search:", error);
+    res.status(500).json({
+      fulfillmentResponse: {
+        messages: [
+          {
+            text: {
+              text: [
+                "Sorry, I'm having trouble searching for doctors right now. Please try again later.",
+              ],
+            },
+          },
+        ],
+      },
+    });
+  }
+});
+
+/**
+ * Search for available doctors based on specialty, location, and date
+ */
+async function searchAvailableDoctors(specialty, location, dateParam) {
+  try {
+    console.log(`Searching for ${specialty} in ${location} on ${dateParam}`);
+
+    // Process date parameter (could be "today", "tomorrow", or specific date)
+    const searchDate = processDateParameter(dateParam);
+
+    // Query Firestore for doctors
+    let doctorsQuery = db.collection("doctors");
+
+    // Filter by specialty (case-insensitive)
+    if (
+      specialty.toLowerCase() !== "any" &&
+      specialty.toLowerCase() !== "general practitioner"
+    ) {
+      doctorsQuery = doctorsQuery.where(
+        "specialty",
+        "==",
+        specialty.toLowerCase()
+      );
+    }
+
+    const doctorsSnapshot = await doctorsQuery.limit(10).get();
+
+    if (doctorsSnapshot.empty) {
+      return { success: false, doctors: [], message: "No doctors found" };
+    }
+
+    const availableDoctors = [];
+
+    for (const docSnapshot of doctorsSnapshot.docs) {
+      const doctorData = docSnapshot.data();
+
+      // Filter by location (check city field)
+      if (
+        !doctorData.city ||
+        !doctorData.city.toLowerCase().includes(location.toLowerCase())
+      ) {
+        continue;
+      }
+
+      // Check availability for the specific date
+      const availability = await checkDoctorAvailability(
+        docSnapshot.id,
+        searchDate
+      );
+
+      if (availability.isAvailable && availability.timeSlots.length > 0) {
+        availableDoctors.push({
+          id: docSnapshot.id,
+          name: doctorData.name,
+          specialty: doctorData.specialty,
+          location: doctorData.city,
+          rating: doctorData.rating || 4.5,
+          availableTimes: availability.timeSlots,
+          ...doctorData,
+        });
+      }
+    }
+
+    return {
+      success: true,
+      doctors: availableDoctors,
+      formattedDate: formatDate(searchDate),
+    };
+  } catch (error) {
+    console.error("Error searching doctors:", error);
+    return { success: false, doctors: [], message: error.message };
+  }
+}
+
+/**
+ * Check if a specific doctor is available on a given date
+ */
+async function checkDoctorAvailability(doctorId, date) {
+  try {
+    const availabilityRef = db.collection("doctor_availability");
+    const availabilitySnapshot = await availabilityRef
+      .where("doctor_id", "==", doctorId)
+      .where("date", ">=", date)
+      .where("date", "<", new Date(date.getTime() + 24 * 60 * 60 * 1000)) // Same day
+      .where("is_available", "==", true)
+      .get();
+
+    const timeSlots = [];
+
+    availabilitySnapshot.forEach((doc) => {
+      const slotData = doc.data();
+      if (slotData.time_slot) {
+        timeSlots.push(slotData.time_slot);
+      }
+    });
+
+    // If no specific availability records, generate default time slots
+    if (timeSlots.length === 0) {
+      const defaultSlots = ["09:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
+      return {
+        isAvailable: true,
+        timeSlots: defaultSlots,
+      };
+    }
+
+    return {
+      isAvailable: timeSlots.length > 0,
+      timeSlots: timeSlots.sort(),
+    };
+  } catch (error) {
+    console.error("Error checking availability:", error);
+    return {
+      isAvailable: false,
+      timeSlots: [],
+    };
+  }
+}
+
+/**
+ * Process date parameter from user input
+ */
+function processDateParameter(dateParam) {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (dateParam.toLowerCase().includes("today")) {
+    return today;
+  } else if (dateParam.toLowerCase().includes("tomorrow")) {
+    return tomorrow;
+  } else {
+    // Try to parse the date string
+    try {
+      return new Date(dateParam);
+    } catch (error) {
+      console.log("Could not parse date, using today as default");
+      return today;
+    }
+  }
+}
+
+/**
+ * Format date for display
+ */
+function formatDate(date) {
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 // --- LEGACY PROXY ENDPOINT (for backward compatibility) ---
 app.post("/dialogflow-proxy", async (req, res) => {
   console.log("=== PROXY REQUEST ===");
@@ -575,6 +903,7 @@ app.get("/health", (req, res) => {
     endpoints: [
       "POST /webhook/symptoms-analyzer",
       "POST /webhook/check-doctor-availability",
+      "POST /webhook/doctor-availability-search",
       "POST /dialogflow-proxy (legacy)",
     ],
   });
@@ -587,6 +916,7 @@ app.listen(PORT, () => {
   console.log("📡 Available endpoints:");
   console.log("  - POST /webhook/symptoms-analyzer (new webhook)");
   console.log("  - POST /webhook/check-doctor-availability (new webhook)");
+  console.log("  - POST /webhook/doctor-availability-search (new webhook)");
   console.log("  - POST /dialogflow-proxy (legacy proxy)");
   console.log("🧠 Integrated with Firestore database and appointment booking");
   console.log(`🔗 Agent: ${PROJECT_ID}/${LOCATION}/${AGENT_ID}`);
