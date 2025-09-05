@@ -1,10 +1,16 @@
 const functions = require("@google-cloud/functions-framework");
 const { VertexAI } = require("@google-cloud/vertexai");
+const { Firestore } = require("@google-cloud/firestore");
+
+// Initialize Firestore
+const db = new Firestore({
+  projectId: "healthcare-patient-portal", // Unified project
+});
 
 // Initialize Vertex AI once
 const vertexAI = new VertexAI({
-  project: "healthcare-patient-portal",
-  location: "us-central1",
+  project: "healthcare-patient-portal", // Updated to match agent project
+  location: "global",
 });
 
 // ---- Helpers (CX response, trigger, formatting) ---------------------------
@@ -61,349 +67,144 @@ function extractUserText(body) {
   );
 }
 
-// ---- Demo "DB" for UK doctors across multiple cities -------------
-const UK_DOCTORS = {
-  dentist: [
-    {
-      doctor_id: "den-001",
-      name: "Dr Emily Carter, BDS",
-      clinic: "London Dental Clinic – Soho",
-      city: "London",
-      specialty: "dentist",
-      modalities: ["in_person"],
-      availability: {
-        "2025-09-02": ["09:00", "10:30", "14:00", "15:30"],
-        "2025-09-03": ["09:00", "11:00", "13:30", "16:00"],
-        "2025-09-04": ["08:30", "10:00", "14:30"],
-        "2025-09-05": ["09:30", "11:30", "15:00", "16:30"],
-        "2025-09-06": ["09:00", "13:00", "14:30"],
-      },
-    },
-    {
-      doctor_id: "den-002",
-      name: "Dr James Wilson, BDS",
-      clinic: "Manchester Smile Centre",
-      city: "Manchester",
-      specialty: "dentist",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-02": ["10:00", "11:30", "15:00"],
-        "2025-09-03": ["09:30", "14:00", "16:30"],
-        "2025-09-04": ["08:00", "10:30", "13:00", "15:30"],
-        "2025-09-05": ["09:00", "11:00", "14:30"],
-        "2025-09-09": ["10:00", "13:30", "15:00", "16:00"],
-      },
-    },
-    {
-      doctor_id: "den-003",
-      name: "Dr Sophie Bennett, BDS, MSc",
-      clinic: "Birmingham Dental Practice",
-      city: "Birmingham",
-      specialty: "dentist",
-      modalities: ["in_person"],
-      availability: {
-        "2025-09-03": ["09:00", "10:30", "15:45"],
-        "2025-09-04": ["08:30", "11:00", "14:00", "16:30"],
-        "2025-09-05": ["09:30", "13:00", "15:30"],
-        "2025-09-06": ["10:00", "11:30", "14:30", "16:00"],
-        "2025-09-10": ["09:00", "10:30", "13:30"],
-      },
-    },
-  ],
-  dermatologist: [
-    {
-      doctor_id: "der-001",
-      name: "Dr Sarah Patel, MD",
-      clinic: "Harley Street Dermatology",
-      city: "London",
-      specialty: "dermatologist",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-02": ["11:00", "14:30", "16:00"],
-        "2025-09-03": ["09:30", "11:30", "15:00"],
-        "2025-09-04": ["10:00", "13:00", "14:30", "16:30"],
-        "2025-09-05": ["09:00", "11:00", "15:30"],
-        "2025-09-06": ["10:30", "13:30", "15:00"],
-      },
-    },
-    {
-      doctor_id: "der-002",
-      name: "Dr Michael Thompson, FRCP",
-      clinic: "Edinburgh Skin Clinic",
-      city: "Edinburgh",
-      specialty: "dermatologist",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-02": ["10:30", "14:00", "15:30"],
-        "2025-09-04": ["09:00", "11:30", "13:30", "16:00"],
-        "2025-09-05": ["10:00", "14:30", "16:30"],
-        "2025-09-06": ["09:30", "11:00", "15:00"],
-        "2025-09-09": ["10:30", "13:00", "14:30"],
-      },
-    },
-  ],
-  gp: [
-    {
-      doctor_id: "gp-001",
-      name: "Dr Lucy Morgan, MRCGP",
-      clinic: "Soho Health Centre",
-      city: "London",
-      specialty: "gp",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-02": ["08:30", "10:00", "14:15", "16:30"],
-        "2025-09-03": ["09:00", "11:30", "13:00", "15:30"],
-        "2025-09-04": ["08:00", "10:30", "14:00", "16:00"],
-        "2025-09-05": ["09:30", "11:00", "13:30", "15:00"],
-        "2025-09-06": ["08:30", "10:00", "14:30", "16:30"],
-      },
-    },
-    {
-      doctor_id: "gp-002",
-      name: "Dr Adam Collins, MRCGP",
-      clinic: "Camden Care Practice",
-      city: "London",
-      specialty: "gp",
-      modalities: ["in_person"],
-      availability: {
-        "2025-09-02": ["09:00", "11:00", "15:00"],
-        "2025-09-03": ["10:00", "13:30", "16:00"],
-        "2025-09-04": ["08:30", "10:30", "14:30"],
-        "2025-09-05": ["09:30", "11:30", "15:30"],
-        "2025-09-09": ["09:00", "13:00", "14:00"],
-      },
-    },
-    {
-      doctor_id: "gp-003",
-      name: "Dr Rebecca Hayes, MBBS",
-      clinic: "Bristol Family Medicine",
-      city: "Bristol",
-      specialty: "gp",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-02": ["09:30", "11:30", "16:30"],
-        "2025-09-03": ["08:00", "10:00", "14:00", "15:30"],
-        "2025-09-04": ["09:00", "11:00", "13:30", "16:00"],
-        "2025-09-05": ["10:30", "14:30", "16:30"],
-        "2025-09-06": ["08:30", "11:30", "15:00"],
-      },
-    },
-    {
-      doctor_id: "gp-004",
-      name: "Dr David Kumar, MRCGP",
-      clinic: "Leeds Medical Centre",
-      city: "Leeds",
-      specialty: "gp",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-03": ["08:45", "10:15", "13:45", "15:15"],
-        "2025-09-04": ["09:00", "11:30", "14:00", "16:30"],
-        "2025-09-05": ["08:30", "10:00", "13:00", "15:30"],
-        "2025-09-06": ["09:30", "11:00", "14:30", "16:00"],
-        "2025-09-09": ["08:45", "10:30", "13:30"],
-      },
-    },
-  ],
-  ent: [
-    {
-      doctor_id: "ent-001",
-      name: "Dr Helen Foster, FRCS",
-      clinic: "London ENT Specialists",
-      city: "London",
-      specialty: "ent",
-      modalities: ["in_person"],
-      availability: {
-        "2025-09-02": ["10:00", "13:15", "15:45"],
-        "2025-09-03": ["09:30", "11:30", "14:30", "16:30"],
-        "2025-09-04": ["08:30", "10:30", "13:00", "15:00"],
-        "2025-09-05": ["09:00", "11:00", "14:00", "16:00"],
-        "2025-09-06": ["10:30", "13:30", "15:30"],
-      },
-    },
-    {
-      doctor_id: "ent-002",
-      name: "Dr Robert Clarke, MS",
-      clinic: "Glasgow Ear, Nose & Throat",
-      city: "Glasgow",
-      specialty: "ent",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-03": ["09:00", "11:30", "14:00"],
-        "2025-09-04": ["10:00", "13:30", "15:30", "17:00"],
-        "2025-09-05": ["08:30", "10:30", "14:30"],
-        "2025-09-06": ["09:30", "11:00", "15:00", "16:30"],
-        "2025-09-09": ["10:00", "13:00", "14:30"],
-      },
-    },
-  ],
-  ophthalmologist: [
-    {
-      doctor_id: "oph-001",
-      name: "Dr Amanda Price, FRCOphth",
-      clinic: "Manchester Eye Hospital",
-      city: "Manchester",
-      specialty: "ophthalmologist",
-      modalities: ["in_person"],
-      availability: {
-        "2025-09-02": ["09:00", "12:00", "15:00"],
-        "2025-09-03": ["10:30", "13:30", "16:00"],
-        "2025-09-04": ["08:30", "11:00", "14:30"],
-        "2025-09-05": ["09:30", "12:30", "15:30"],
-        "2025-09-06": ["10:00", "13:00", "16:30"],
-      },
-    },
-    {
-      doctor_id: "oph-002",
-      name: "Dr Christopher Lee, MBBS",
-      clinic: "Birmingham Vision Centre",
-      city: "Birmingham",
-      specialty: "ophthalmologist",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-03": ["09:00", "11:00", "14:45"],
-        "2025-09-04": ["10:30", "13:00", "15:30", "17:00"],
-        "2025-09-05": ["08:30", "10:00", "14:00", "16:30"],
-        "2025-09-06": ["09:30", "12:00", "15:00"],
-        "2025-09-10": ["10:00", "13:30", "16:00"],
-      },
-    },
-  ],
-  cardiologist: [
-    {
-      doctor_id: "car-001",
-      name: "Dr Elizabeth Turner, FRCP",
-      clinic: "Heart & Vascular Institute London",
-      city: "London",
-      specialty: "cardiologist",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-02": ["09:30", "11:30", "14:30"],
-        "2025-09-03": ["10:00", "13:00", "15:30", "17:00"],
-        "2025-09-04": ["08:30", "10:30", "14:00", "16:00"],
-        "2025-09-05": ["09:00", "11:00", "15:00"],
-        "2025-09-06": ["10:30", "13:30", "16:30"],
-      },
-    },
-    {
-      doctor_id: "car-002",
-      name: "Dr Andrew Morrison, MD",
-      clinic: "Edinburgh Cardiac Centre",
-      city: "Edinburgh",
-      specialty: "cardiologist",
-      modalities: ["in_person"],
-      availability: {
-        "2025-09-03": ["09:00", "10:15", "14:30"],
-        "2025-09-04": ["11:00", "13:30", "16:00"],
-        "2025-09-05": ["08:30", "10:30", "15:30"],
-        "2025-09-06": ["09:30", "11:30", "14:00", "16:30"],
-        "2025-09-09": ["10:15", "13:00", "15:00"],
-      },
-    },
-  ],
-  neurologist: [
-    {
-      doctor_id: "neu-001",
-      name: "Dr Victoria Singh, FRCP",
-      clinic: "Bristol Neurology Clinic",
-      city: "Bristol",
-      specialty: "neurologist",
-      modalities: ["in_person", "telemedicine"],
-      availability: {
-        "2025-09-02": ["10:00", "13:00", "15:30"],
-        "2025-09-03": ["09:30", "11:30", "14:30", "16:30"],
-        "2025-09-04": ["08:30", "10:30", "13:30", "15:00"],
-        "2025-09-05": ["09:00", "11:00", "14:00", "16:00"],
-        "2025-09-06": ["10:30", "13:00", "15:30"],
-      },
-    },
-    {
-      doctor_id: "neu-002",
-      name: "Dr Thomas Evans, MBBS",
-      clinic: "Leeds Brain & Spine Centre",
-      city: "Leeds",
-      specialty: "neurologist",
-      modalities: ["in_person"],
-      availability: {
-        "2025-09-04": ["09:00", "11:30", "15:30"],
-        "2025-09-05": ["10:00", "13:00", "16:00"],
-        "2025-09-06": ["08:30", "10:30", "14:30"],
-        "2025-09-09": ["09:30", "11:00", "15:00", "17:00"],
-        "2025-09-10": ["10:30", "13:30", "16:30"],
-      },
-    },
-  ],
-};
-
+// ---- Cloud Database Integration (Firestore) ---------------------------
 const doctorsDb = {
   async listDoctors({ specialty, location, modality, limit = 5 }) {
-    return (UK_DOCTORS[specialty] || []).slice(0, limit);
+    try {
+      const doctorsRef = db.collection("doctors");
+      let query = doctorsRef;
+
+      // Filter by specialty if provided
+      if (specialty) {
+        query = query.where("specialty", "==", specialty);
+      }
+
+      // Filter by location/city if provided
+      if (location) {
+        query = query.where("city", "==", location);
+      }
+
+      // Filter by modality if provided
+      if (modality) {
+        query = query.where("modalities", "array-contains", modality);
+      }
+
+      // Apply limit
+      query = query.limit(limit);
+
+      const snapshot = await query.get();
+      const doctors = [];
+
+      snapshot.forEach((doc) => {
+        doctors.push({ id: doc.id, ...doc.data() });
+      });
+
+      return doctors;
+    } catch (error) {
+      console.error("Error fetching doctors from Firestore:", error);
+      throw error;
+    }
   },
 
   async getDoctorById(doctorId) {
-    // Find doctor across all specialties
-    for (const specialty in UK_DOCTORS) {
-      const doctor = UK_DOCTORS[specialty].find(
-        (d) => d.doctor_id === doctorId
-      );
-      if (doctor) return doctor;
+    try {
+      const docRef = db.collection("doctors").doc(doctorId);
+      const doc = await docRef.get();
+
+      if (!doc.exists) {
+        return null;
+      }
+
+      return { id: doc.id, ...doc.data() };
+    } catch (error) {
+      console.error("Error fetching doctor by ID:", error);
+      throw error;
     }
-    return null;
   },
 
   async getAvailability(doctorId, fromDate = null, toDate = null) {
-    const doctor = await this.getDoctorById(doctorId);
-    if (!doctor) return {};
+    try {
+      const doctor = await this.getDoctorById(doctorId);
+      if (!doctor || !doctor.availability) return {};
 
-    let availability = doctor.availability;
+      let availability = doctor.availability;
 
-    // Filter by date range if provided
-    if (fromDate || toDate) {
-      const filtered = {};
-      Object.keys(availability).forEach((date) => {
-        const dateObj = new Date(date);
-        const from = fromDate ? new Date(fromDate) : new Date("1900-01-01");
-        const to = toDate ? new Date(toDate) : new Date("2100-12-31");
+      // Filter by date range if provided
+      if (fromDate || toDate) {
+        const filtered = {};
+        Object.keys(availability).forEach((date) => {
+          const dateObj = new Date(date);
+          const from = fromDate ? new Date(fromDate) : new Date("1900-01-01");
+          const to = toDate ? new Date(toDate) : new Date("2100-12-31");
 
-        if (dateObj >= from && dateObj <= to) {
-          filtered[date] = availability[date];
-        }
-      });
-      availability = filtered;
+          if (dateObj >= from && dateObj <= to) {
+            filtered[date] = availability[date];
+          }
+        });
+        availability = filtered;
+      }
+
+      return availability;
+    } catch (error) {
+      console.error("Error fetching doctor availability:", error);
+      throw error;
     }
-
-    return availability;
   },
 
   async getAvailableSlots(doctorId, date) {
-    const doctor = await this.getDoctorById(doctorId);
-    if (!doctor || !doctor.availability[date]) return [];
+    try {
+      const doctor = await this.getDoctorById(doctorId);
+      if (!doctor || !doctor.availability || !doctor.availability[date])
+        return [];
 
-    return doctor.availability[date].map((time) => ({
-      slot_id: `${doctorId}-${date}-${time}`,
-      date: date,
-      time: time,
-      datetime_iso: `${date}T${time}:00+00:00`,
-      available: true,
-    }));
+      return doctor.availability[date].map((time) => ({
+        slot_id: `${doctorId}-${date}-${time}`,
+        date: date,
+        time: time,
+        datetime_iso: `${date}T${time}:00+00:00`,
+        available: true,
+      }));
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      throw error;
+    }
   },
 
   async bookSlot(slotId, patientInfo) {
-    // Extract doctor_id, date, and time from slot_id
-    const [doctorId, date, time] = slotId.split("-");
+    try {
+      // Extract doctor_id, date, and time from slot_id
+      const [doctorId, date, time] = slotId.split("-");
+      const bookingId = `BK-${Date.now()}`;
 
-    // In a real system, you would:
-    // 1. Remove the slot from availability
-    // 2. Create a booking record
-    // 3. Send confirmation emails
+      // Create booking record in Firestore
+      const bookingData = {
+        booking_id: bookingId,
+        doctor_id: doctorId,
+        date: date,
+        time: time,
+        patient: patientInfo,
+        status: "confirmed",
+        created_at: new Date(),
+      };
 
-    return {
-      success: true,
-      booking_id: `BK-${Date.now()}`,
-      doctor_id: doctorId,
-      date: date,
-      time: time,
-      patient: patientInfo,
-    };
+      // Save booking to Firestore
+      await db.collection("appointments").doc(bookingId).set(bookingData);
+
+      // TODO: Remove the slot from doctor's availability
+      // TODO: Send confirmation emails
+
+      return {
+        success: true,
+        booking_id: bookingId,
+        doctor_id: doctorId,
+        date: date,
+        time: time,
+        patient: patientInfo,
+      };
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      throw error;
+    }
   },
 };
 
@@ -1050,6 +851,262 @@ async function handleCollectContactInfo(body) {
   }
 }
 
+// ---- New webhook handlers for the new agent structure ----------------------
+
+async function handleSymptomsAnalyzer(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  console.log("Handling symptoms analyzer with params:", params);
+
+  const symptomsList = params.symptoms_list || "";
+  const symptomDuration = params.symptom_duration_days || "";
+
+  if (!symptomsList) {
+    return dfReply({
+      text: "I'd like to help analyze your symptoms. Could you please describe what you're experiencing?",
+      params: {},
+    });
+  }
+
+  console.log("Processing symptoms:", symptomsList);
+
+  // Simple emergency screen
+  if (
+    /(chest pain|can't breathe|difficulty breathing|uncontrolled bleeding|suicid)/i.test(
+      symptomsList
+    )
+  ) {
+    return dfReply({
+      text: "This could be an emergency. Please call your local emergency number now or go to the nearest emergency department.",
+      params: {
+        symptom_result: "emergency",
+        final_status: "emergency_referral",
+      },
+    });
+  }
+
+  // Use AI to classify specialty based on symptoms
+  let specialty, specialtyDisplayName, advice;
+
+  try {
+    const aiClassification = await classifySymptomWithAI(symptomsList);
+    specialty = aiClassification.specialty;
+    specialtyDisplayName = aiClassification.displayName;
+    advice = aiClassification.advice;
+  } catch (error) {
+    console.error(
+      "AI classification failed, falling back to basic patterns:",
+      error
+    );
+
+    // Basic symptom classification fallback
+    if (/(headache|migraine|head pain)/i.test(symptomsList)) {
+      specialty = "neurology";
+      specialtyDisplayName = "Neurologist";
+      advice =
+        "For persistent headaches, it's best to consult a neurologist who can properly evaluate your symptoms.";
+    } else if (/(heart|chest|cardiac)/i.test(symptomsList)) {
+      specialty = "cardiology";
+      specialtyDisplayName = "Cardiologist";
+      advice =
+        "Heart-related symptoms should be evaluated by a cardiologist for proper diagnosis and treatment.";
+    } else if (/(skin|rash|acne|mole)/i.test(symptomsList)) {
+      specialty = "dermatology";
+      specialtyDisplayName = "Dermatologist";
+      advice =
+        "Skin conditions are best treated by a dermatologist who specializes in these issues.";
+    } else {
+      specialty = "gp";
+      specialtyDisplayName = "General Practitioner";
+      advice =
+        "A general practitioner can help evaluate your symptoms and provide appropriate care or referrals.";
+    }
+  }
+
+  let durationText = "";
+  if (symptomDuration) {
+    const days = parseInt(symptomDuration);
+    if (days > 0) {
+      durationText = ` You mentioned these symptoms have been present for ${days} day${
+        days > 1 ? "s" : ""
+      }.`;
+    }
+  }
+
+  const responseText = `Based on your symptoms: "${symptomsList}".${durationText}\n\n${advice}\n\nWould you like me to show you available ${specialtyDisplayName.toLowerCase()}s for an appointment?`;
+
+  return dfReply({
+    text: responseText,
+    params: {
+      symptoms_list: symptomsList,
+      symptom_duration_days: symptomDuration,
+      symptom_result: specialty,
+      specialty: specialty,
+      specialtyDisplayName: specialtyDisplayName,
+      advice_given: advice,
+    },
+  });
+}
+
+async function handleCheckDoctorAvailability(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  console.log("Handling doctor availability check with params:", params);
+
+  const selectedDoctor = params.selected_doctor_name || "";
+  const insuranceProvider = params.insurance_provider || "";
+  const userName = params.user_name || "";
+  const dob = params.dob || "";
+  const specialty = params.specialty || params.symptom_result || "gp";
+
+  if (selectedDoctor) {
+    // User has selected a specific doctor
+    try {
+      // Get doctor details from Firestore
+      const doctorsRef = db.collection("doctors");
+      const snapshot = await doctorsRef
+        .where("name", "==", selectedDoctor)
+        .get();
+
+      if (snapshot.empty) {
+        return dfReply({
+          text: `I couldn't find Dr. ${selectedDoctor}. Let me show you available doctors instead.`,
+          params: { ...params },
+        });
+      }
+
+      const doctorDoc = snapshot.docs[0];
+      const doctor = doctorDoc.data();
+
+      // Check insurance compatibility if provided
+      let insuranceMessage = "";
+      if (insuranceProvider) {
+        const acceptedInsurance = doctor.insurance_accepted || [];
+        const isInsuranceAccepted = acceptedInsurance.some((ins) =>
+          ins.toLowerCase().includes(insuranceProvider.toLowerCase())
+        );
+
+        if (isInsuranceAccepted) {
+          insuranceMessage = `\n✅ Dr. ${doctor.name} accepts ${insuranceProvider} insurance.`;
+        } else {
+          insuranceMessage = `\n⚠️ Please note: Dr. ${doctor.name} may not accept ${insuranceProvider} insurance. You may want to verify this or consider other options.`;
+        }
+      }
+
+      // Get available appointments
+      const availabilityRef = db.collection("doctor_availability");
+      const availabilitySnapshot = await availabilityRef
+        .where("doctor_id", "==", doctorDoc.id)
+        .where("is_available", "==", true)
+        .orderBy("date")
+        .limit(5)
+        .get();
+
+      if (availabilitySnapshot.empty) {
+        return dfReply({
+          text: `Dr. ${doctor.name} doesn't have any available appointments in the near future.${insuranceMessage}\n\nWould you like to see other available doctors?`,
+          params: {
+            ...params,
+            final_status: "no_availability",
+          },
+        });
+      }
+
+      let appointmentOptions =
+        "Here are the available appointment slots with Dr. " +
+        doctor.name +
+        ":\n\n";
+      availabilitySnapshot.docs.forEach((doc, index) => {
+        const slot = doc.data();
+        const date = new Date(slot.date.seconds * 1000);
+        appointmentOptions += `${index + 1}. ${date.toLocaleDateString()} at ${
+          slot.time_slot
+        }\n`;
+      });
+
+      appointmentOptions += insuranceMessage;
+      appointmentOptions +=
+        "\n\nPlease select a time slot by saying the number (e.g., '1' for the first option).";
+
+      return dfReply({
+        text: appointmentOptions,
+        params: {
+          ...params,
+          selected_doctor_name: doctor.name,
+          doctor_id: doctorDoc.id,
+          available_slots: availabilitySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })),
+        },
+      });
+    } catch (error) {
+      console.error("Error checking doctor availability:", error);
+      return dfReply({
+        text: "I encountered an error while checking availability. Please try again.",
+        params: { ...params },
+      });
+    }
+  } else {
+    // Show available doctors for the specialty
+    try {
+      const doctorsRef = db.collection("doctors");
+      let query = doctorsRef;
+
+      if (specialty && specialty !== "gp") {
+        query = query.where("specialty", "==", specialty);
+      }
+
+      const snapshot = await query.limit(5).get();
+
+      if (snapshot.empty) {
+        return dfReply({
+          text: "I couldn't find any available doctors at the moment. Please try again later.",
+          params: { ...params },
+        });
+      }
+
+      let doctorsList = "Here are available doctors:\n\n";
+      snapshot.docs.forEach((doc, index) => {
+        const doctor = doc.data();
+        doctorsList += `${index + 1}. **Dr. ${doctor.name}** - ${
+          doctor.specialty
+        }\n`;
+        doctorsList += `   📍 ${doctor.location}\n`;
+        doctorsList += `   ⭐ Rating: ${doctor.rating}/5\n\n`;
+      });
+
+      doctorsList +=
+        "Please tell me which doctor you'd like to book with (e.g., 'Dr. Smith' or '1' for the first option).";
+
+      return dfReply({
+        text: doctorsList,
+        params: {
+          ...params,
+          available_doctors: snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })),
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+      return dfReply({
+        text: "I encountered an error while fetching available doctors. Please try again.",
+        params: { ...params },
+      });
+    }
+  }
+}
+
+async function handleFallback(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  const userText = extractUserText(body);
+
+  return dfReply({
+    text: "I can help you with healthcare services. You can describe your symptoms or ask to see available doctors. How can I assist you today?",
+    params: { ...params },
+  });
+}
+
 // ---- Main webhook handler --------------------------------------------------
 functions.http("appointmentWebhook", async (req, res) => {
   console.log("=== INCOMING REQUEST ===");
@@ -1059,109 +1116,129 @@ functions.http("appointmentWebhook", async (req, res) => {
 
   try {
     const trigger = getTrigger(req.body);
+    const params =
+      (req.body.sessionInfo && req.body.sessionInfo.parameters) || {};
     console.log("Trigger:", trigger);
+    console.log("Parameters:", params);
 
     let result;
-    switch (trigger) {
-      case "DESCRIBE_SYMPTOM":
-      case "DESCRIBE_SYMPTOM_IR":
-      case "DESCRIBE_SYMTOM": // accept typo
-      case "DESCRIBE_SYMTOM_IR":
-      case "DESCRIBE-SYMTOM_IR": // accept hyphen
-        result = await handleDescribeSymptom(req.body);
-        break;
-      case "PROVIDE_ADVICE":
-      case "ASK_ADVICE":
-      case "ASK_ADVICE_IR":
-      case "GIVE_ADVICE":
-      case "1": // Handle when user types "1" for advice
-        result = await handleProvideAdvice(req.body);
-        break;
-      case "SHOW_DOCTORS":
-      case "CHOOSE_DOCTORS":
-      case "CHOOSE_SPECIALIST":
-      case "CHOOSE_SPECIALIST_IR":
-      case "FIND_DOCTORS":
-      case "2": // Handle when user types "2" for doctors
-        result = await handleShowDoctors(req.body);
-        break;
-      case "CHOOSE_DOCTOR":
-      case "SELECT_DOCTOR":
-        result = await handleChooseDoctor(req.body);
-        break;
-      case "CHOOSE_DATE":
-      case "SELECT_DATE":
-        result = await handleChooseDate(req.body);
-        break;
-      case "CHOOSE_TIME":
-      case "SELECT_TIME":
-        result = await handleChooseTime(req.body);
-        break;
-      case "PROVIDE_CONTACT":
-      case "COLLECT_CONTACT_INFO":
-        result = await handleCollectContactInfo(req.body);
-        break;
-      case "CONFIRM_YES":
-        // Handle when user says "yes" after getting advice
-        const params =
-          (req.body.sessionInfo && req.body.sessionInfo.parameters) || {};
-        if (params.next_action === "ADVICE_GIVEN" && params.advice_given) {
-          // User wants to see doctors after getting advice
+
+    // Handle new agent webhook structure
+    if (req.body.webhookInfo && req.body.webhookInfo.tag) {
+      const webhookTag = req.body.webhookInfo.tag;
+      console.log("Webhook Tag:", webhookTag);
+
+      switch (webhookTag) {
+        case "symptoms-analyzer":
+          result = await handleSymptomsAnalyzer(req.body);
+          break;
+        case "check-doctor-availability":
+          result = await handleCheckDoctorAvailability(req.body);
+          break;
+        default:
+          console.log("Unknown webhook tag:", webhookTag);
+          result = await handleFallback(req.body);
+          break;
+      }
+    } else {
+      // Legacy trigger-based handling for backward compatibility
+      switch (trigger) {
+        case "DESCRIBE_SYMPTOM":
+        case "DESCRIBE_SYMPTOM_IR":
+        case "DESCRIBE_SYMTOM": // accept typo
+        case "DESCRIBE_SYMTOM_IR":
+        case "DESCRIBE-SYMTOM_IR": // accept hyphen
+          result = await handleDescribeSymptom(req.body);
+          break;
+        case "PROVIDE_ADVICE":
+        case "ASK_ADVICE":
+        case "ASK_ADVICE_IR":
+        case "GIVE_ADVICE":
+        case "1": // Handle when user types "1" for advice
+          result = await handleProvideAdvice(req.body);
+          break;
+        case "SHOW_DOCTORS":
+        case "CHOOSE_DOCTORS":
+        case "CHOOSE_SPECIALIST":
+        case "CHOOSE_SPECIALIST_IR":
+        case "FIND_DOCTORS":
+        case "2": // Handle when user types "2" for doctors
           result = await handleShowDoctors(req.body);
-        } else {
-          // Other "yes" contexts - fall through to default logic
+          break;
+        case "CHOOSE_DOCTOR":
+        case "SELECT_DOCTOR":
+          result = await handleChooseDoctor(req.body);
+          break;
+        case "CHOOSE_DATE":
+        case "SELECT_DATE":
+          result = await handleChooseDate(req.body);
+          break;
+        case "CHOOSE_TIME":
+        case "SELECT_TIME":
+          result = await handleChooseTime(req.body);
+          break;
+        case "PROVIDE_CONTACT":
+        case "COLLECT_CONTACT_INFO":
+          result = await handleCollectContactInfo(req.body);
+          break;
+        case "CONFIRM_YES":
+          // Handle when user says "yes" after getting advice
+          if (params.next_action === "ADVICE_GIVEN" && params.advice_given) {
+            // User wants to see doctors after getting advice
+            result = await handleShowDoctors(req.body);
+          } else {
+            // Other "yes" contexts - fall through to default logic
+            result = null;
+          }
+          break;
+        case "PROVIDE_DATE_TIME":
+          // Handle when Dialogflow misinterprets "1" or "2" as time
+          // Fall through to default case logic
           result = null;
+          break;
+        default:
+          // For unknown triggers, set result to null to trigger default logic
+          result = null;
+          break;
+      }
+
+      // Handle cases where result is null (from PROVIDE_DATE_TIME or default)
+      if (!result) {
+        const userText = extractUserText(req.body).toLowerCase();
+
+        // Handle numeric choices (1 = advice, 2 = doctors)
+        if (/^1$|^advice$|get.*advice|medical.*advice/i.test(userText)) {
+          result = await handleProvideAdvice(req.body);
+        } else if (
+          /^2$|^doctors?$|show.*doctor|available.*doctor|find.*doctor/i.test(
+            userText
+          )
+        ) {
+          result = await handleShowDoctors(req.body);
+        } else if (params.next_action === "CHOOSE_OPTION") {
+          // User is in the choice context but didn't choose a valid option
+          result = dfReply({
+            text: "Please choose either:\n\n1. **Get medical advice** for your symptoms\n2. **Show available doctors** for an appointment\n\nYou can type '1', '2', 'advice', or 'doctors'.",
+            params: { ...params },
+          });
+        } else if (params.next_action === "OFFER_DOCTORS") {
+          // User is choosing a doctor from the list
+          result = await handleChooseDoctor(req.body);
+        } else if (params.next_action === "CHOOSE_DATE") {
+          // User is choosing a date from the calendar
+          result = await handleChooseDate(req.body);
+        } else if (params.next_action === "CHOOSE_TIME") {
+          // User is choosing a time slot
+          result = await handleChooseTime(req.body);
+        } else if (params.next_action === "COLLECT_CONTACT_INFO") {
+          // User is providing contact information
+          result = await handleCollectContactInfo(req.body);
+        } else {
+          result = dfReply({
+            text: "I can help you find healthcare services. Try describing your symptoms.",
+            params: { next_action: "UNKNOWN_TRIGGER" },
+          });
         }
-        break;
-      case "PROVIDE_DATE_TIME":
-        // Handle when Dialogflow misinterprets "1" or "2" as time
-        // Fall through to default case logic
-        result = null;
-        break;
-      default:
-        // For unknown triggers, set result to null to trigger default logic
-        result = null;
-        break;
-    }
-
-    // Handle cases where result is null (from PROVIDE_DATE_TIME or default)
-    if (!result) {
-      const userText = extractUserText(req.body).toLowerCase();
-      const params =
-        (req.body.sessionInfo && req.body.sessionInfo.parameters) || {};
-
-      // Handle numeric choices (1 = advice, 2 = doctors)
-      if (/^1$|^advice$|get.*advice|medical.*advice/i.test(userText)) {
-        result = await handleProvideAdvice(req.body);
-      } else if (
-        /^2$|^doctors?$|show.*doctor|available.*doctor|find.*doctor/i.test(
-          userText
-        )
-      ) {
-        result = await handleShowDoctors(req.body);
-      } else if (params.next_action === "CHOOSE_OPTION") {
-        // User is in the choice context but didn't choose a valid option
-        result = dfReply({
-          text: "Please choose either:\n\n1. **Get medical advice** for your symptoms\n2. **Show available doctors** for an appointment\n\nYou can type '1', '2', 'advice', or 'doctors'.",
-          params: { ...params },
-        });
-      } else if (params.next_action === "OFFER_DOCTORS") {
-        // User is choosing a doctor from the list
-        result = await handleChooseDoctor(req.body);
-      } else if (params.next_action === "CHOOSE_DATE") {
-        // User is choosing a date from the calendar
-        result = await handleChooseDate(req.body);
-      } else if (params.next_action === "CHOOSE_TIME") {
-        // User is choosing a time slot
-        result = await handleChooseTime(req.body);
-      } else if (params.next_action === "COLLECT_CONTACT_INFO") {
-        // User is providing contact information
-        result = await handleCollectContactInfo(req.body);
-      } else {
-        result = dfReply({
-          text: "I can help you find healthcare services. Try describing your symptoms.",
-          params: { next_action: "UNKNOWN_TRIGGER" },
-        });
       }
     }
 

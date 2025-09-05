@@ -57,15 +57,39 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
       const data = await response.json();
 
+      // Debug: Log the full response to see what we're getting
+      console.log("=== FULL DIALOGFLOW RESPONSE ===");
+      console.log(JSON.stringify(data, null, 2));
+
       // Extract response text from Dialogflow
       let botResponseText =
         "👋 Hello! I'm your healthcare assistant. How can I help you today?";
+      let richContent = null;
 
       if (data.queryResult && data.queryResult.responseMessages) {
         const responseMessages = data.queryResult.responseMessages;
+
+        console.log("=== RESPONSE MESSAGES ===");
+        console.log(JSON.stringify(responseMessages, null, 2));
+
+        // Look for text response
         const textResponse = responseMessages.find((msg) => msg.text);
         if (textResponse && textResponse.text && textResponse.text.text) {
           botResponseText = textResponse.text.text.join(" ");
+        }
+
+        // Look for custom payload (rich content)
+        const payloadResponse = responseMessages.find((msg) => msg.payload);
+        if (payloadResponse && payloadResponse.payload) {
+          console.log("=== FOUND RICH CONTENT ===");
+          console.log(JSON.stringify(payloadResponse.payload, null, 2));
+          richContent = payloadResponse.payload;
+        } else {
+          console.log("=== NO RICH CONTENT FOUND ===");
+          console.log(
+            "Available response message types:",
+            responseMessages.map((msg) => Object.keys(msg))
+          );
         }
       }
 
@@ -75,6 +99,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         text: botResponseText,
         isBot: true,
         timestamp: new Date(),
+        richContent: richContent,
       };
       setMessages((prev) => [welcomeMessage, ...prev]); // Prepend welcome message instead of replacing all
     } catch (error) {
@@ -211,15 +236,39 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
       const data = await response.json();
 
+      // Debug: Log the full response to see what we're getting
+      console.log("=== FULL DIALOGFLOW RESPONSE (sendMessage) ===");
+      console.log(JSON.stringify(data, null, 2));
+
       // Extract response text from Dialogflow
       let botResponseText =
         "Sorry, I didn't understand that. Could you please rephrase?";
+      let richContent = null;
 
       if (data.queryResult && data.queryResult.responseMessages) {
         const responseMessages = data.queryResult.responseMessages;
+
+        console.log("=== RESPONSE MESSAGES (sendMessage) ===");
+        console.log(JSON.stringify(responseMessages, null, 2));
+
+        // Look for text response
         const textResponse = responseMessages.find((msg) => msg.text);
         if (textResponse && textResponse.text && textResponse.text.text) {
           botResponseText = textResponse.text.text.join(" ");
+        }
+
+        // Look for custom payload (rich content)
+        const payloadResponse = responseMessages.find((msg) => msg.payload);
+        if (payloadResponse && payloadResponse.payload) {
+          console.log("=== FOUND RICH CONTENT (sendMessage) ===");
+          console.log(JSON.stringify(payloadResponse.payload, null, 2));
+          richContent = payloadResponse.payload;
+        } else {
+          console.log("=== NO RICH CONTENT FOUND (sendMessage) ===");
+          console.log(
+            "Available response message types:",
+            responseMessages.map((msg) => Object.keys(msg))
+          );
         }
       }
 
@@ -229,6 +278,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         text: botResponseText,
         isBot: true,
         timestamp: new Date(),
+        richContent: richContent,
       };
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
@@ -441,6 +491,41 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                 >
                   {message.text}
                 </div>
+
+                {/* Rich content (chips) */}
+                {message.isBot &&
+                  message.richContent &&
+                  message.richContent.richContent && (
+                    <div className="mt-2">
+                      {message.richContent.richContent.map(
+                        (section, sectionIndex) => (
+                          <div key={sectionIndex}>
+                            {section.map((item, itemIndex) => {
+                              if (item.type === "chips" && item.options) {
+                                return (
+                                  <div
+                                    key={itemIndex}
+                                    className="flex flex-wrap gap-2 mt-2"
+                                  >
+                                    {item.options.map((option, optionIndex) => (
+                                      <button
+                                        key={optionIndex}
+                                        onClick={() => sendMessage(option.text)}
+                                        className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-sm border border-blue-200 transition-colors duration-200"
+                                      >
+                                        {option.text}
+                                      </button>
+                                    ))}
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
                 <div
                   className={`text-xs text-gray-400 mt-1 ${
                     message.isBot ? "text-left" : "text-right"

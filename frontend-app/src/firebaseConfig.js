@@ -46,4 +46,8 @@ const app = initializeApp(firebaseConfig);
 // Export Firebase services you intend to use
 export const auth = getAuth(app); // Exported for use in AuthContext and page components
 export const db = getFirestore(app); // Exported for Firestore interactions
-export const analytics = getAnalytics(app); // Exported for analytics if you plan to use it
+
+// Only initialize analytics if measurementId is provided
+export const analytics = firebaseConfig.measurementId
+  ? getAnalytics(app)
+  : null; // Exported for analytics if you plan to use it
