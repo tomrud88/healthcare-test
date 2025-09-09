@@ -50,41 +50,33 @@ functions.http("doctorsService", async (req, res) => {
 
       case "addDoctor":
         if (method !== "POST") {
-          return res
-            .status(405)
-            .json({
-              error: "Method not allowed. Use POST for adding doctors.",
-            });
+          return res.status(405).json({
+            error: "Method not allowed. Use POST for adding doctors.",
+          });
         }
         return await addDoctor(req, res);
 
       case "updateDoctor":
         if (method !== "PUT") {
-          return res
-            .status(405)
-            .json({
-              error: "Method not allowed. Use PUT for updating doctors.",
-            });
+          return res.status(405).json({
+            error: "Method not allowed. Use PUT for updating doctors.",
+          });
         }
         return await updateDoctor(req, res);
 
       case "deleteDoctor":
         if (method !== "DELETE") {
-          return res
-            .status(405)
-            .json({
-              error: "Method not allowed. Use DELETE for deleting doctors.",
-            });
+          return res.status(405).json({
+            error: "Method not allowed. Use DELETE for deleting doctors.",
+          });
         }
         return await deleteDoctor(req, res);
 
       case "updateAvailability":
         if (method !== "PUT") {
-          return res
-            .status(405)
-            .json({
-              error: "Method not allowed. Use PUT for updating availability.",
-            });
+          return res.status(405).json({
+            error: "Method not allowed. Use PUT for updating availability.",
+          });
         }
         return await updateAvailability(req, res);
 
@@ -95,6 +87,16 @@ functions.http("doctorsService", async (req, res) => {
             .json({ error: "Method not allowed. Use POST for migration." });
         }
         return await migrateLocalData(req, res);
+
+      case "convertTimesTo24Hour":
+        if (method !== "POST") {
+          return res
+            .status(405)
+            .json({
+              error: "Method not allowed. Use POST for time conversion.",
+            });
+        }
+        return await convertTimesTo24Hour(req, res);
 
       default:
         return res.status(400).json({ error: "Invalid action parameter." });
@@ -196,12 +198,10 @@ async function getDoctorsBySpecialty(req, res) {
     });
   } catch (error) {
     console.error("Error fetching doctors by specialty:", error);
-    return res
-      .status(500)
-      .json({
-        error: "Failed to fetch doctors by specialty",
-        details: error.message,
-      });
+    return res.status(500).json({
+      error: "Failed to fetch doctors by specialty",
+      details: error.message,
+    });
   }
 }
 
@@ -235,12 +235,10 @@ async function getDoctorsByCity(req, res) {
     });
   } catch (error) {
     console.error("Error fetching doctors by city:", error);
-    return res
-      .status(500)
-      .json({
-        error: "Failed to fetch doctors by city",
-        details: error.message,
-      });
+    return res.status(500).json({
+      error: "Failed to fetch doctors by city",
+      details: error.message,
+    });
   }
 }
 
@@ -277,12 +275,10 @@ async function getDoctorsByFilters(req, res) {
     });
   } catch (error) {
     console.error("Error fetching doctors by filters:", error);
-    return res
-      .status(500)
-      .json({
-        error: "Failed to fetch doctors by filters",
-        details: error.message,
-      });
+    return res.status(500).json({
+      error: "Failed to fetch doctors by filters",
+      details: error.message,
+    });
   }
 }
 
@@ -499,12 +495,10 @@ async function updateAvailability(req, res) {
     });
   } catch (error) {
     console.error("Error updating doctor availability:", error);
-    return res
-      .status(500)
-      .json({
-        error: "Failed to update doctor availability",
-        details: error.message,
-      });
+    return res.status(500).json({
+      error: "Failed to update doctor availability",
+      details: error.message,
+    });
   }
 }
 

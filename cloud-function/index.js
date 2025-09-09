@@ -1107,6 +1107,475 @@ async function handleFallback(body) {
   });
 }
 
+// ---- Doctor Availability Webhook -------------------------------------------
+functions.http("doctorAvailabilityWebhook", async (req, res) => {
+  console.log("=== DOCTOR AVAILABILITY WEBHOOK ===");
+  console.log("Method:", req.method);
+  console.log("Headers:", req.headers);
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+
+  try {
+    const tag = req.body?.fulfillmentInfo?.tag;
+    const params =
+      (req.body.sessionInfo && req.body.sessionInfo.parameters) || {};
+
+    console.log("Tag:", tag);
+    console.log("Parameters:", params);
+
+    let result;
+
+    switch (tag) {
+      case "get-doctor-availability-params":
+        result = await handleGetDoctorAvailabilityParams(req.body);
+        break;
+      case "search-doctors-by-criteria":
+        result = await handleSearchDoctorsByCriteria(req.body);
+        break;
+      default:
+        // Try to parse any user input that might contain doctor search criteria
+        const userText = extractUserText(req.body);
+        if (userText && userText.length > 3) {
+          console.log("Attempting to parse user input:", userText);
+          const parsedParams = parseSearchCriteria(userText);
+
+          // If we found at least two of the three required parameters, try to search
+          const foundParams = [
+            parsedParams.specialty,
+            parsedParams.location,
+            parsedParams.date,
+          ].filter((p) => p).length;
+
+          if (foundParams >= 2) {
+            console.log("Found sufficient parameters, triggering search");
+            result = await handleSearchDoctorsByCriteria(req.body);
+            break;
+          }
+        }
+
+        result = dfReply({
+          text: "I can help you find available doctors. Please provide the doctor specialty, preferred date, and location.",
+          params: { ...params },
+        });
+        break;
+    }
+
+    console.log("Response:", JSON.stringify(result, null, 2));
+    res.json(result);
+  } catch (error) {
+    console.error("Error in doctor availability webhook:", error);
+    res.status(500).json({
+      fulfillmentResponse: {
+        messages: [
+          {
+            text: {
+              text: [
+                "Sorry, I'm having trouble searching for doctors right now. Please try again later.",
+              ],
+            },
+          },
+        ],
+      },
+    });
+  }
+});
+
+// Handle initial doctor availability request
+async function handleGetDoctorAvailabilityParams(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+  
+  // Check if we have enough parameters to start searching
+  let specialty = params.specialty || params.doctor_specialty;
+  let location = params.location || params.city;
+  let dateParam = params.date || params.preferred_date;
+  
+  // Handle location object format from Dialogflow CX
+  if (location && typeof location === 'object' && location.city) {
+    location = location.city;
+  }
+  
+  // If we have enough parameters, try to parse the user text for any missing ones
+  if (!dateParam) {
+    const userText = extractUserText(body);
+    console.log("Checking user text for date:", userText);
+    
+    const parsedParams = parseSearchCriteria(userText);
+    dateParam = dateParam || parsedParams.date;
+    
+    // Also check for other missing parameters
+    if (!specialty) specialty = parsedParams.specialty;
+    if (!location) location = parsedParams.location;
+  }
+  
+  console.log("Available parameters:", { specialty, location, dateParam });
+  
+  // If we have all required parameters, trigger the search
+  if (specialty && location && dateParam) {
+    console.log("All parameters available, triggering search");
+    return await handleSearchDoctorsByCriteria(body);
+  }
+
+  return dfReply({
+    text: "Please provide the following information to find available doctors:\n\n1. **Doctor specialty** (e.g., Cardiologist, Dermatologist, General Practitioner)\n2. **Preferred date** (e.g., today, tomorrow, or specific date)\n3. **Location/City** (e.g., London, Manchester)\n\nYou can say something like: 'I need a cardiologist in London for tomorrow'",
+    params: {
+      ...params,
+      availability_flow_started: true,
+    },
+  });
+}
+
+// Handle doctor search with criteria
+async function handleSearchDoctorsByCriteria(body) {
+  const params = (body.sessionInfo && body.sessionInfo.parameters) || {};
+
+  let specialty = params.specialty || params.doctor_specialty;
+  let location = params.location || params.city;
+  let dateParam = params.date || params.preferred_date;
+
+  // Handle location object format from Dialogflow CX
+  if (location && typeof location === 'object' && location.city) {
+    location = location.city;
+  }
+
+  // If parameters are not extracted, try to parse from user text
+  if (!specialty || !location || !dateParam) {
+    const userText = extractUserText(body);
+    console.log("Trying to parse user text:", userText);
+
+    const parsedParams = parseSearchCriteria(userText);
+
+    specialty = specialty || parsedParams.specialty;
+    location = location || parsedParams.location;
+    dateParam = dateParam || parsedParams.date;
+  }
+
+  console.log("Search parameters:", { specialty, location, dateParam });
+
+  if (!specialty || !location || !dateParam) {
+    let missingParams = [];
+    if (!specialty) missingParams.push("specialty");
+    if (!location) missingParams.push("location");
+    if (!dateParam) missingParams.push("date");
+
+    return dfReply({
+      text: `I need more information. Please provide: ${missingParams.join(
+        ", "
+      )}\n\nExample: "I need a cardiologist in London for tomorrow" or "Dermatologist, September 6th, Manchester"`,
+      params: params,
+    });
+  }
+
+  try {
+    const searchResults = await searchAvailableDoctors(
+      specialty,
+      location,
+      dateParam
+    );
+
+    if (searchResults.success && searchResults.doctors.length > 0) {
+      let responseText = `I found ${searchResults.doctors.length} ${specialty} doctor(s) available in ${location} on ${searchResults.formattedDate}:\n\n`;
+
+      searchResults.doctors.forEach((doctor, index) => {
+        responseText += `**${index + 1}. Dr. ${doctor.name}**\n`;
+        responseText += `   📍 ${doctor.location}\n`;
+        responseText += `   ⭐ Rating: ${doctor.rating}/5\n`;
+        responseText += `   🕒 Available times: ${doctor.availableTimes.join(
+          ", "
+        )}\n\n`;
+      });
+
+      responseText +=
+        "Which doctor would you like to book an appointment with? You can say the doctor's name or number.";
+
+      return dfReply({
+        text: responseText,
+        params: {
+          ...params,
+          search_results: searchResults.doctors,
+          search_specialty: specialty,
+          search_location: location,
+          search_date: searchResults.formattedDate,
+          next_action: "select_doctor",
+        },
+      });
+    } else {
+      return dfReply({
+        text: `Sorry, I couldn't find any ${specialty} doctors available in ${location} on the requested date. Would you like to try a different date or location?`,
+        params: {
+          ...params,
+          search_failed: true,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error searching for doctors:", error);
+    return dfReply({
+      text: "I'm having trouble searching for doctors right now. Please try again later.",
+      params: params,
+    });
+  }
+}
+
+// Parse search criteria from free-form text
+function parseSearchCriteria(text) {
+  const result = {
+    specialty: null,
+    location: null,
+    date: null,
+  };
+
+  if (!text) return result;
+
+  const lowerText = text.toLowerCase();
+
+  // Common medical specialties
+  const specialties = [
+    "cardiologist",
+    "dermatologist",
+    "neurologist",
+    "psychiatrist",
+    "oncologist",
+    "orthopedist",
+    "pediatrician",
+    "gynecologist",
+    "urologist",
+    "ophthalmologist",
+    "ent",
+    "radiologist",
+    "anesthesiologist",
+    "pathologist",
+    "endocrinologist",
+    "rheumatologist",
+    "pulmonologist",
+    "gastroenterologist",
+    "nephrologist",
+    "general practitioner",
+    "gp",
+    "family doctor",
+    "general doctor",
+  ];
+
+  // Find specialty
+  for (const specialty of specialties) {
+    if (lowerText.includes(specialty)) {
+      result.specialty =
+        specialty === "gp" ? "general practitioner" : specialty;
+      break;
+    }
+  }
+
+  // Common UK cities and locations
+  const locations = [
+    "london",
+    "manchester",
+    "birmingham",
+    "liverpool",
+    "leeds",
+    "sheffield",
+    "bristol",
+    "glasgow",
+    "edinburgh",
+    "cardiff",
+    "belfast",
+    "newcastle",
+    "nottingham",
+    "bradford",
+    "coventry",
+    "leicester",
+    "wolverhampton",
+    "plymouth",
+    "stoke",
+    "derby",
+    "southampton",
+    "portsmouth",
+    "york",
+    "peterborough",
+    "dundee",
+    "lancaster",
+    "preston",
+    "blackpool",
+  ];
+
+  // Find location
+  for (const location of locations) {
+    if (lowerText.includes(location)) {
+      result.location = location.charAt(0).toUpperCase() + location.slice(1);
+      break;
+    }
+  }
+
+  // Parse date
+  // Handle formats like: 06.09.2025, 6/9/2025, September 6th, tomorrow, today
+  if (lowerText.includes("today")) {
+    result.date = "today";
+  } else if (lowerText.includes("tomorrow")) {
+    result.date = "tomorrow";
+  } else {
+    // Look for date patterns
+    const datePatterns = [
+      /(\d{1,2})\.(\d{1,2})\.(\d{4})/, // 06.09.2025
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})/, // 6/9/2025
+      /(\d{4})-(\d{1,2})-(\d{1,2})/, // 2025-09-06
+      /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})/i,
+    ];
+
+    for (const pattern of datePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        result.date = match[0];
+        break;
+      }
+    }
+  }
+
+  console.log("Parsed criteria:", result);
+  return result;
+}
+
+// Search for available doctors based on specialty, location, and date
+async function searchAvailableDoctors(specialty, location, dateParam) {
+  try {
+    console.log(`Searching for ${specialty} in ${location} on ${dateParam}`);
+
+    // Process date parameter
+    const searchDate = processDateParameter(dateParam);
+
+    // Query Firestore for doctors
+    let doctorsQuery = db.collection("doctors");
+
+    // Filter by specialty (case-insensitive)
+    if (
+      specialty.toLowerCase() !== "any" &&
+      specialty.toLowerCase() !== "general practitioner"
+    ) {
+      doctorsQuery = doctorsQuery.where(
+        "specialty",
+        "==",
+        specialty.toLowerCase()
+      );
+    }
+
+    const doctorsSnapshot = await doctorsQuery.limit(10).get();
+
+    if (doctorsSnapshot.empty) {
+      return { success: false, doctors: [], message: "No doctors found" };
+    }
+
+    const availableDoctors = [];
+
+    for (const docSnapshot of doctorsSnapshot.docs) {
+      const doctorData = docSnapshot.data();
+
+      // Filter by location (check city field)
+      if (
+        !doctorData.city ||
+        !doctorData.city.toLowerCase().includes(location.toLowerCase())
+      ) {
+        continue;
+      }
+
+      // Check availability for the specific date
+      const availability = await checkDoctorAvailability(
+        docSnapshot.id,
+        searchDate
+      );
+
+      if (availability.isAvailable && availability.timeSlots.length > 0) {
+        availableDoctors.push({
+          id: docSnapshot.id,
+          name: doctorData.name,
+          specialty: doctorData.specialty,
+          location: doctorData.city,
+          rating: doctorData.rating || 4.5,
+          availableTimes: availability.timeSlots,
+          ...doctorData,
+        });
+      }
+    }
+
+    return {
+      success: true,
+      doctors: availableDoctors,
+      formattedDate: formatDate(searchDate),
+    };
+  } catch (error) {
+    console.error("Error searching doctors:", error);
+    return { success: false, doctors: [], message: error.message };
+  }
+}
+
+// Check if a specific doctor is available on a given date
+async function checkDoctorAvailability(doctorId, date) {
+  try {
+    const availabilityRef = db.collection("doctor_availability");
+    const availabilitySnapshot = await availabilityRef
+      .where("doctor_id", "==", doctorId)
+      .where("date", ">=", date)
+      .where("date", "<", new Date(date.getTime() + 24 * 60 * 60 * 1000)) // Same day
+      .where("is_available", "==", true)
+      .get();
+
+    const timeSlots = [];
+
+    availabilitySnapshot.forEach((doc) => {
+      const slotData = doc.data();
+      if (slotData.time_slot) {
+        timeSlots.push(slotData.time_slot);
+      }
+    });
+
+    // If no specific availability records, generate default time slots
+    if (timeSlots.length === 0) {
+      const defaultSlots = ["09:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
+      return {
+        isAvailable: true,
+        timeSlots: defaultSlots,
+      };
+    }
+
+    return {
+      isAvailable: timeSlots.length > 0,
+      timeSlots: timeSlots.sort(),
+    };
+  } catch (error) {
+    console.error("Error checking availability:", error);
+    return {
+      isAvailable: false,
+      timeSlots: [],
+    };
+  }
+}
+
+// Process date parameter from user input
+function processDateParameter(dateParam) {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (dateParam.toLowerCase().includes("today")) {
+    return today;
+  } else if (dateParam.toLowerCase().includes("tomorrow")) {
+    return tomorrow;
+  } else {
+    // Try to parse the date string
+    try {
+      return new Date(dateParam);
+    } catch (error) {
+      console.log("Could not parse date, using today as default");
+      return today;
+    }
+  }
+}
+
+// Format date for display
+function formatDate(date) {
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 // ---- Main webhook handler --------------------------------------------------
 functions.http("appointmentWebhook", async (req, res) => {
   console.log("=== INCOMING REQUEST ===");

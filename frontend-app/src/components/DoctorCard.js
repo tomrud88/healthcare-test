@@ -15,37 +15,34 @@ const DoctorCard = ({ doctor }) => {
     if (availableDates.length === 0) return "No availability";
 
     const firstDate = availableDates[0];
-    const firstTime = doctor.availability[firstDate][0];
+    const firstTime = doctor.availability[firstDate][0]; // First time is now guaranteed to be the earliest
 
     if (firstDate && firstTime) {
       try {
-        // Convert 12-hour format (e.g., "09:00 AM") to 24-hour format for Date constructor
-        const convertTo24Hour = (time12h) => {
-          const [time, modifier] = time12h.split(" ");
-          let [hours, minutes] = time.split(":");
-          if (hours === "12") {
-            hours = "00";
-          }
-          if (modifier === "PM") {
-            hours = parseInt(hours, 10) + 12;
-          }
-          return `${hours}:${minutes}`;
-        };
+        // Parse the date string manually to avoid timezone issues
+        const [year, month, day] = firstDate.split("-").map(Number);
 
-        const time24h = convertTo24Hour(firstTime);
-        const dateTime = new Date(`${firstDate}T${time24h}:00`);
+        // Parse 24-hour format (e.g., "09:00", "17:00")
+        const [hours, minutes] = firstTime.split(":").map(Number);
+
+        // Create date in local timezone
+        const dateTime = new Date(year, month - 1, day, hours, minutes);
 
         return dateTime.toLocaleString("en-GB", {
-          timeZone: "Europe/London",
           weekday: "short",
           day: "2-digit",
           month: "short",
           hour: "2-digit",
           minute: "2-digit",
+          hour12: true, // This ensures AM/PM format in display
         });
       } catch (error) {
-        console.error("Error formatting date:", error);
-        return `${firstDate} at ${firstTime}`;
+        console.error("Error parsing date/time:", {
+          firstDate,
+          firstTime,
+          error,
+        });
+        return "Invalid date";
       }
     }
 

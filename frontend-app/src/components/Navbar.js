@@ -236,22 +236,6 @@ export default function Navbar() {
                     <span className="mr-3">👤</span>
                     View Profile
                   </a>
-                  <a
-                    href="/appointments"
-                    onClick={(e) => handleNavigation("/appointments", e)}
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                  >
-                    <span className="mr-3">📅</span>
-                    My Appointments
-                  </a>
-                  <a
-                    href="/book-appointment"
-                    onClick={(e) => handleNavigation("/book-appointment", e)}
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                  >
-                    <span className="mr-3">📝</span>
-                    Book Appointment
-                  </a>
                   <hr className="my-2 border-gray-200" />
                   <button
                     onClick={async (e) => {
@@ -312,22 +296,6 @@ export default function Navbar() {
                   >
                     <span className="mr-3">👤</span>
                     View Profile
-                  </a>
-                  <a
-                    href="/appointments"
-                    onClick={(e) => handleNavigation("/appointments", e)}
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                  >
-                    <span className="mr-3">📅</span>
-                    My Appointments
-                  </a>
-                  <a
-                    href="/book-appointment"
-                    onClick={(e) => handleNavigation("/book-appointment", e)}
-                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-                  >
-                    <span className="mr-3">📝</span>
-                    Book Appointment
                   </a>
                   <hr className="my-2 border-gray-200" />
                   <button

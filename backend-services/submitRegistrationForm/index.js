@@ -104,8 +104,41 @@ functions.http("submitRegistrationForm", async (req, res) => {
       });
     }
 
-    // Original registration/update logic for full patient data
-    // Validate required fields
+    // Check if this is a profile update (patient already exists)
+    const existingDoc = await patientRef.get();
+    const isProfileUpdate = existingDoc.exists;
+
+    if (isProfileUpdate) {
+      console.log("Processing profile update for existing patient:", patientId);
+      console.log("Update data:", formData);
+
+      // For profile updates, we just merge the provided fields
+      const updateData = {
+        ...formData,
+        updatedAt: Firestore.FieldValue.serverTimestamp(),
+      };
+
+      // Remove any undefined values
+      Object.keys(updateData).forEach((key) => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+
+      await patientRef.set(updateData, { merge: true });
+
+      console.log("Profile updated successfully for patient:", patientId);
+      return res.status(200).json({
+        message: "Profile updated successfully.",
+        patientId: patientId,
+        data: updateData,
+      });
+    }
+
+    // Original registration logic for new patients
+    console.log("Processing new patient registration:", patientId);
+
+    // Validate required fields for new registrations only
     const requiredFields = [
       "name",
       "surname",
@@ -160,6 +193,10 @@ functions.http("submitRegistrationForm", async (req, res) => {
     }
     if (formData.emergencyContactPhone) {
       patientData.emergencyContactPhone = formData.emergencyContactPhone;
+    }
+    if (formData.emergencyContactRelationship) {
+      patientData.emergencyContactRelationship =
+        formData.emergencyContactRelationship;
     }
     if (formData.emergencyContactRelation) {
       patientData.emergencyContactRelation = formData.emergencyContactRelation;

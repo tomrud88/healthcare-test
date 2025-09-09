@@ -35,7 +35,11 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/dialogflow-proxy", {
+      const dialogflowProxyUrl =
+        process.env.REACT_APP_DIALOGFLOW_PROXY_URL ||
+        "http://localhost:3001/dialogflow-proxy";
+
+      const response = await fetch(dialogflowProxyUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -213,8 +217,12 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setIsLoading(true);
 
     try {
-      // Call local proxy server
-      const response = await fetch("http://localhost:3001/dialogflow-proxy", {
+      // Call Dialogflow proxy (production or local)
+      const dialogflowProxyUrl =
+        process.env.REACT_APP_DIALOGFLOW_PROXY_URL ||
+        "http://localhost:3001/dialogflow-proxy";
+
+      const response = await fetch(dialogflowProxyUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -243,6 +251,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       // Extract response text from Dialogflow
       let botResponseText =
         "Sorry, I didn't understand that. Could you please rephrase?";
+      let richContent = null;
 
       if (data.queryResult && data.queryResult.responseMessages) {
         const responseMessages = data.queryResult.responseMessages;
@@ -250,60 +259,18 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         console.log("=== RESPONSE MESSAGES (sendMessage) ===");
         console.log(JSON.stringify(responseMessages, null, 2));
 
-        // Process each text message separately
-        const textMessages = responseMessages.filter(
-          (msg) => msg.text && msg.text.text
-        );
-
-        if (textMessages.length > 0) {
-          // Add each text message as a separate bot message
-          textMessages.forEach((textMsg, index) => {
-            const botResponseText = textMsg.text.text.join(" ");
-
-            const botMessage = {
-              id: Date.now() + 1 + index, // Unique ID for each message
-              text: botResponseText,
-              isBot: true,
-              timestamp: new Date(),
-            };
-
-            // Add small delay between messages for better UX
-            setTimeout(() => {
-              setMessages((prev) => [...prev, botMessage]);
-            }, index * 500); // 500ms delay between messages
-          });
-        } else {
-          // Fallback if no text messages found
-          botResponseText =
-            "Sorry, I didn't understand that. Could you please rephrase?";
-          const botMessage = {
-            id: Date.now() + 1,
-            text: botResponseText,
-            isBot: true,
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, botMessage]);
+        // Look for text response
+        const textResponse = responseMessages.find((msg) => msg.text);
+        if (textResponse && textResponse.text && textResponse.text.text) {
+          botResponseText = textResponse.text.text.join(" ");
         }
 
-        // Look for custom payload (rich content) - handle separately
+        // Look for custom payload (rich content)
         const payloadResponse = responseMessages.find((msg) => msg.payload);
         if (payloadResponse && payloadResponse.payload) {
           console.log("=== FOUND RICH CONTENT (sendMessage) ===");
           console.log(JSON.stringify(payloadResponse.payload, null, 2));
-
-          // Add rich content as a separate message
-          const richMessage = {
-            id: Date.now() + 1000, // Different ID range for rich content
-            text: "", // Empty text for rich content only
-            isBot: true,
-            timestamp: new Date(),
-            richContent: payloadResponse.payload,
-          };
-
-          // Add rich content after text messages
-          setTimeout(() => {
-            setMessages((prev) => [...prev, richMessage]);
-          }, textMessages.length * 500 + 200);
+          richContent = payloadResponse.payload;
         } else {
           console.log("=== NO RICH CONTENT FOUND (sendMessage) ===");
           console.log(
@@ -311,16 +278,17 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             responseMessages.map((msg) => Object.keys(msg))
           );
         }
-      } else {
-        // Fallback for no response messages
-        const botMessage = {
-          id: Date.now() + 1,
-          text: botResponseText,
-          isBot: true,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
       }
+
+      // Add bot response to chat
+      const botMessage = {
+        id: Date.now() + 1,
+        text: botResponseText,
+        isBot: true,
+        timestamp: new Date(),
+        richContent: richContent,
+      };
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Error communicating with chat agent:", error);
 

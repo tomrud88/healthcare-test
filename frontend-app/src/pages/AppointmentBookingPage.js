@@ -91,27 +91,12 @@ function AppointmentBookingPage() {
   const getAvailableDoctors = () => {
     if (!selectedSpecialty || !selectedDate) return [];
 
-    console.log("Filtering doctors for:", { selectedSpecialty, selectedDate });
-
-    const availableDoctors = doctors.filter((doctor) => {
+    return doctors.filter((doctor) => {
       const matchesSpecialty = doctor.specialty === selectedSpecialty;
       const hasAvailability =
-        doctor.availability &&
-        doctor.availability[selectedDate] &&
-        Array.isArray(doctor.availability[selectedDate]) &&
-        doctor.availability[selectedDate].length > 0;
-
-      console.log(`Doctor ${doctor.name}:`, {
-        matchesSpecialty,
-        hasAvailability,
-        availability: doctor.availability?.[selectedDate],
-      });
-
+        doctor.availability && doctor.availability[selectedDate];
       return matchesSpecialty && hasAvailability;
     });
-
-    console.log("Available doctors found:", availableDoctors.length);
-    return availableDoctors;
   };
 
   const availableDoctors = getAvailableDoctors();
@@ -474,11 +459,7 @@ function AppointmentBookingPage() {
                           </p>
                           <p className="text-sm font-medium text-gray-700 mb-2">
                             Available times:{" "}
-                            {doctor.availability &&
-                            doctor.availability[selectedDate] &&
-                            Array.isArray(doctor.availability[selectedDate])
-                              ? doctor.availability[selectedDate].join(", ")
-                              : "No times available"}
+                            {doctor.availability[selectedDate].join(", ")}
                           </p>
                           <p className="text-xs text-gray-500">{doctor.bio}</p>
                         </div>
@@ -519,18 +500,11 @@ function AppointmentBookingPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a time</option>
-                    {selectedDoctor &&
-                    selectedDoctor.availability &&
-                    selectedDoctor.availability[selectedDate] &&
-                    Array.isArray(selectedDoctor.availability[selectedDate]) ? (
-                      selectedDoctor.availability[selectedDate].map((time) => (
-                        <option key={time} value={time}>
-                          {time}
-                        </option>
-                      ))
-                    ) : (
-                      <option disabled>No times available</option>
-                    )}
+                    {selectedDoctor.availability[selectedDate].map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}

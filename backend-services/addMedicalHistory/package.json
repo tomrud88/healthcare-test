@@ -1,0 +1,13 @@
+{
+  "name": "add-medical-history",
+  "version": "1.0.0",
+  "description": "Cloud function to add medical history records to existing patients",
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.0.0",
+    "@google-cloud/firestore": "^7.0.0"
+  },
+  "scripts": {
+    "start": "npx functions-framework --target=addMedicalHistoryRecords"
+  }
+}
