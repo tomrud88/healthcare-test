@@ -35,11 +35,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setIsLoading(true);
 
     try {
-      const dialogflowProxyUrl =
-        process.env.REACT_APP_DIALOGFLOW_PROXY_URL ||
-        "http://localhost:3001/dialogflow-proxy";
-
-      const response = await fetch(dialogflowProxyUrl, {
+      const response = await fetch("http://localhost:3001/dialogflow-proxy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -217,12 +213,8 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setIsLoading(true);
 
     try {
-      // Call Dialogflow proxy (production or local)
-      const dialogflowProxyUrl =
-        process.env.REACT_APP_DIALOGFLOW_PROXY_URL ||
-        "http://localhost:3001/dialogflow-proxy";
-
-      const response = await fetch(dialogflowProxyUrl, {
+      // Call local proxy server
+      const response = await fetch("http://localhost:3001/dialogflow-proxy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -11,19 +11,63 @@ const DoctorCard = ({ doctor }) => {
   const getNextAvailable = () => {
     if (!doctor.availability) return "No availability";
 
-    const availableDates = Object.keys(doctor.availability).sort();
-    if (availableDates.length === 0) return "No availability";
+    const now = new Date();
+    const currentDate = now.toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
 
-    const firstDate = availableDates[0];
-    const firstTime = doctor.availability[firstDate][0]; // First time is now guaranteed to be the earliest
+    // Filter and sort available dates to only include future dates/times
+    const futureDates = Object.keys(doctor.availability)
+      .filter((date) => {
+        if (date > currentDate) {
+          // Future dates are always valid
+          return true;
+        } else if (date === currentDate) {
+          // For today, check if there are any future time slots
+          const times = doctor.availability[date];
+          return times.some((time) => {
+            const [hours, minutes] = time.split(":").map(Number);
+            const timeInMinutes = hours * 60 + minutes;
+            return timeInMinutes > currentTime;
+          });
+        }
+        // Past dates are not valid
+        return false;
+      })
+      .sort();
 
-    if (firstDate && firstTime) {
+    if (futureDates.length === 0) return "No upcoming availability";
+
+    // Find the earliest available time slot
+    let earliestDate = null;
+    let earliestTime = null;
+
+    for (const date of futureDates) {
+      const times = doctor.availability[date];
+
+      // For today, filter out past times
+      const availableTimes =
+        date === currentDate
+          ? times.filter((time) => {
+              const [hours, minutes] = time.split(":").map(Number);
+              const timeInMinutes = hours * 60 + minutes;
+              return timeInMinutes > currentTime;
+            })
+          : times;
+
+      if (availableTimes.length > 0) {
+        earliestDate = date;
+        earliestTime = availableTimes.sort()[0]; // Get earliest time for this date
+        break;
+      }
+    }
+
+    if (earliestDate && earliestTime) {
       try {
         // Parse the date string manually to avoid timezone issues
-        const [year, month, day] = firstDate.split("-").map(Number);
+        const [year, month, day] = earliestDate.split("-").map(Number);
 
         // Parse 24-hour format (e.g., "09:00", "17:00")
-        const [hours, minutes] = firstTime.split(":").map(Number);
+        const [hours, minutes] = earliestTime.split(":").map(Number);
 
         // Create date in local timezone
         const dateTime = new Date(year, month - 1, day, hours, minutes);
@@ -34,19 +78,19 @@ const DoctorCard = ({ doctor }) => {
           month: "short",
           hour: "2-digit",
           minute: "2-digit",
-          hour12: true, // This ensures AM/PM format in display
+          hour12: false, // This ensures 24-hour format in display
         });
       } catch (error) {
         console.error("Error parsing date/time:", {
-          firstDate,
-          firstTime,
+          earliestDate,
+          earliestTime,
           error,
         });
         return "Invalid date";
       }
     }
 
-    return "No availability";
+    return "No upcoming availability";
   };
 
   const handleBookingComplete = (booking) => {
