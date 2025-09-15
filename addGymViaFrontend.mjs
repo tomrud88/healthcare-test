@@ -4,10 +4,10 @@ import { getFirestore, collection, doc, setDoc } from "firebase/firestore";
 
 // Firebase config (same as in your frontend)
 const firebaseConfig = {
-  apiKey: "AIzaSyBUYGvUUEzxJqXJHEIHHlSuL0I7xT-p1t0",
-  authDomain: "healthcare-patient-portal.firebaseapp.com",
-  projectId: "healthcare-patient-portal",
-  storageBucket: "healthcare-patient-portal.appspot.com",
+  apiKey: "<YOUR_FIREBASE_API_KEY>",
+  authDomain: "<YOUR_FIREBASE_AUTH_DOMAIN>",
+  projectId: "<YOUR_FIREBASE_PROJECT_ID>",
+  storageBucket: "<YOUR_FIREBASE_STORAGE_BUCKET>",
   messagingSenderId: "896031233234",
   appId: "1:896031233234:web:8e29f66b88b6f1b0f1b9ac",
   measurementId: "G-V4YC8XHFQR",
