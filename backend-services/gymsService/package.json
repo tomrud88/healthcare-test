@@ -1,0 +1,13 @@
+{
+  "name": "gyms-service",
+  "version": "1.0.0",
+  "description": "Firebase Cloud Function for managing gym data",
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.0.0",
+    "@google-cloud/firestore": "^6.0.0"
+  },
+  "engines": {
+    "node": "18"
+  }
+}

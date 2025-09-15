@@ -6,12 +6,10 @@ import React, {
   useContext,
   useCallback,
 } from "react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
 import { useChatContext } from "../ChatContext";
 
 const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
-  const navigate = useNavigate();
   const { externalMessages, clearExternalMessages } = useChatContext();
   const [messages, setMessages] = useState([]); // Start with empty messages
   const [inputMessage, setInputMessage] = useState("");
@@ -35,7 +33,13 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/dialogflow-proxy", {
+      // Use production endpoint when deployed, localhost for development
+      const apiEndpoint =
+        process.env.NODE_ENV === "production"
+          ? "https://us-central1-healthcare-patient-portal.cloudfunctions.net/dialogflowProxy"
+          : "http://localhost:3001/dialogflow-proxy";
+
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,7 +67,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
       // Extract response text from Dialogflow
       let botResponseText =
-        "👋 Hello! I'm your healthcare assistant. How can I help you today?";
+        "👋 Hello! I'm your Health Consultant. How can I help you today?";
       let richContent = null;
 
       if (data.queryResult && data.queryResult.responseMessages) {
@@ -108,7 +112,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       // Fallback welcome message if Dialogflow is unavailable
       const fallbackMessage = {
         id: Date.now(),
-        text: "👋 Hello! I'm your healthcare assistant. How can I help you today?\n\n• Book appointments\n• Find doctors\n• General health questions\n• And much more!\n\n(Note: AI assistant is currently offline, but I can still help you navigate the site!)",
+        text: "👋 Hello! I'm your Health Consultant. How can I help you today?\n\n• Book appointments\n• Find doctors\n• General health questions\n• And much more!\n\n(Note: AI assistant is currently offline, but I can still help you navigate the site!)",
         isBot: true,
         timestamp: new Date(),
         isError: true,
@@ -213,8 +217,14 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setIsLoading(true);
 
     try {
-      // Call local proxy server
-      const response = await fetch("http://localhost:3001/dialogflow-proxy", {
+      // Use production endpoint when deployed, localhost for development
+      const apiEndpoint =
+        process.env.NODE_ENV === "production"
+          ? "https://us-central1-healthcare-patient-portal.cloudfunctions.net/dialogflowProxy"
+          : "http://localhost:3001/dialogflow-proxy";
+
+      // Call proxy server
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -251,36 +261,29 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         console.log("=== RESPONSE MESSAGES (sendMessage) ===");
         console.log(JSON.stringify(responseMessages, null, 2));
 
-        // Look for text response
-        const textResponse = responseMessages.find((msg) => msg.text);
-        if (textResponse && textResponse.text && textResponse.text.text) {
-          botResponseText = textResponse.text.text.join(" ");
-        }
-
-        // Look for custom payload (rich content)
-        const payloadResponse = responseMessages.find((msg) => msg.payload);
-        if (payloadResponse && payloadResponse.payload) {
-          console.log("=== FOUND RICH CONTENT (sendMessage) ===");
-          console.log(JSON.stringify(payloadResponse.payload, null, 2));
-          richContent = payloadResponse.payload;
-        } else {
-          console.log("=== NO RICH CONTENT FOUND (sendMessage) ===");
-          console.log(
-            "Available response message types:",
-            responseMessages.map((msg) => Object.keys(msg))
-          );
-        }
+        // Map all text responses to bot messages
+        const botMessages = [];
+        responseMessages.forEach((msg) => {
+          if (msg.text && msg.text.text) {
+            botMessages.push({
+              id: Date.now() + Math.random(),
+              text: msg.text.text.join(" "),
+              isBot: true,
+              timestamp: new Date(),
+            });
+          }
+          if (msg.payload) {
+            botMessages.push({
+              id: Date.now() + Math.random(),
+              text: "", // No text, just rich content
+              isBot: true,
+              timestamp: new Date(),
+              richContent: msg.payload,
+            });
+          }
+        });
+        setMessages((prev) => [...prev, ...botMessages]);
       }
-
-      // Add bot response to chat
-      const botMessage = {
-        id: Date.now() + 1,
-        text: botResponseText,
-        isBot: true,
-        timestamp: new Date(),
-        richContent: richContent,
-      };
-      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Error communicating with chat agent:", error);
 
@@ -321,98 +324,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     });
   };
 
-  const quickActions = [
-    "Book an appointment",
-    "Find a doctor",
-    "View my appointments",
-    "What services do you offer?",
-    "Office hours and location",
-  ];
-
-  const handleQuickAction = (action) => {
-    if (action === "Book an appointment") {
-      // Add user message to chat
-      const userMessage = {
-        id: Date.now(),
-        text: action,
-        isBot: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-
-      // Add bot response message
-      setTimeout(() => {
-        const botMessage = {
-          id: Date.now() + 1,
-          text: "📋 Taking you to the booking page where you can book your appointment with our specialists...",
-          isBot: true,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
-
-        // Navigate after showing the message for 2 seconds
-        setTimeout(() => {
-          navigate("/book-appointment");
-          onClose(); // Close the chat when navigating
-        }, 2000);
-      }, 500);
-    } else if (action === "Find a doctor") {
-      // Add user message to chat
-      const userMessage = {
-        id: Date.now(),
-        text: action,
-        isBot: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-
-      // Add bot response message
-      setTimeout(() => {
-        const botMessage = {
-          id: Date.now() + 1,
-          text: "👩‍⚕️ Taking you to our doctors page where you can browse all available specialists...",
-          isBot: true,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
-
-        // Navigate after showing the message for 2 seconds
-        setTimeout(() => {
-          navigate("/doctors");
-          onClose(); // Close the chat when navigating
-        }, 2000);
-      }, 500);
-    } else if (action === "View my appointments") {
-      // Add user message to chat
-      const userMessage = {
-        id: Date.now(),
-        text: action,
-        isBot: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-
-      // Add bot response message
-      setTimeout(() => {
-        const botMessage = {
-          id: Date.now() + 1,
-          text: "📅 Taking you to your appointments page...",
-          isBot: true,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
-
-        // Navigate after showing the message for 1.5 seconds
-        setTimeout(() => {
-          navigate("/my-appointments");
-          onClose(); // Close the chat when navigating
-        }, 1500);
-      }, 500);
-    } else {
-      sendMessage(action);
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -426,13 +337,13 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       {/* Chat Window */}
       <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md h-[600px] flex flex-col animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-xl">🏥</span>
+              <span className="text-xl">👩‍⚕️</span>
             </div>
             <div>
-              <h3 className="font-semibold">Healthcare Assistant</h3>
+              <h3 className="font-semibold">AI Health Assistant</h3>
               <p className="text-xs opacity-90">Online • Ready to help</p>
             </div>
           </div>
@@ -472,35 +383,38 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
               >
                 {message.isBot && (
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-xs">🤖</span>
+                    <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                      <span className="text-xs">👩‍⚕️</span>
                     </div>
                     <span className="text-xs text-gray-500">
                       Healthcare Bot
                     </span>
                   </div>
                 )}
-                <div
-                  className={`px-4 py-2 rounded-2xl whitespace-pre-wrap ${
-                    message.isBot
-                      ? message.isError
-                        ? "bg-red-100 text-red-800 border border-red-200"
-                        : "bg-white text-gray-800 border border-gray-200 shadow-sm"
-                      : "bg-blue-600 text-white"
-                  }`}
-                >
-                  {message.text}
-                </div>
+                {/* Only render message bubble if text is not empty */}
+                {message.text && message.text.trim() ? (
+                  <div
+                    className={`px-4 py-2 rounded-2xl whitespace-pre-wrap ${
+                      message.isBot
+                        ? message.isError
+                          ? "bg-red-100 text-red-800 border border-red-200"
+                          : "bg-white text-gray-800 border border-gray-200 shadow-sm"
+                        : "bg-green-600 text-white"
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                ) : null}
 
                 {/* Rich content (chips) */}
-                {message.isBot &&
-                  message.richContent &&
-                  message.richContent.richContent && (
-                    <div className="mt-2">
-                      {message.richContent.richContent.map(
+                {message.isBot && message.richContent && (
+                  <div className="mt-2">
+                    {message.richContent.richContent &&
+                      message.richContent.richContent.map(
                         (section, sectionIndex) => (
                           <div key={sectionIndex}>
                             {section.map((item, itemIndex) => {
+                              // Render chips
                               if (item.type === "chips" && item.options) {
                                 return (
                                   <div
@@ -511,7 +425,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                                       <button
                                         key={optionIndex}
                                         onClick={() => sendMessage(option.text)}
-                                        className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-sm border border-blue-200 transition-colors duration-200"
+                                        className="px-3 py-1 bg-green-50 hover:bg-green-100 text-green-700 rounded-full text-sm border border-green-200 transition-colors duration-200"
                                       >
                                         {option.text}
                                       </button>
@@ -519,13 +433,49 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                                   </div>
                                 );
                               }
+                              // Render buttons
+                              if (item.type === "button") {
+                                if (item.link) {
+                                  // External link button
+                                  return (
+                                    <a
+                                      key={itemIndex}
+                                      href={item.link}
+                                      target={
+                                        item.newWindow ? "_blank" : "_self"
+                                      }
+                                      rel="noopener noreferrer"
+                                      className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-sm border border-blue-200 transition-colors duration-200 inline-block mr-2 mt-2"
+                                    >
+                                      {item.text}
+                                    </a>
+                                  );
+                                } else if (item.event) {
+                                  // Event button (can be handled with a callback if needed)
+                                  return (
+                                    <button
+                                      key={itemIndex}
+                                      onClick={() => {
+                                        // TODO: handle custom event if needed
+                                        alert(
+                                          "Event triggered: " +
+                                            (item.event.name || "")
+                                        ); // Replace with real handler
+                                      }}
+                                      className="px-3 py-1 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-full text-sm border border-yellow-200 transition-colors duration-200 mr-2 mt-2"
+                                    >
+                                      {item.text}
+                                    </button>
+                                  );
+                                }
+                              }
                               return null;
                             })}
                           </div>
                         )
                       )}
-                    </div>
-                  )}
+                  </div>
+                )}
                 <div
                   className={`text-xs text-gray-400 mt-1 ${
                     message.isBot ? "text-left" : "text-right"
@@ -542,8 +492,8 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             <div className="flex justify-start">
               <div className="max-w-[80%]">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-xs">🤖</span>
+                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                    <span className="text-xs">👩‍⚕️</span>
                   </div>
                   <span className="text-xs text-gray-500">
                     Healthcare Bot is typing...
@@ -569,25 +519,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Quick Actions */}
-        {messages.length <= 1 && !isLoading && (
-          <div className="p-4 border-t border-gray-200 bg-white">
-            <p className="text-xs text-gray-500 mb-2">Quick actions:</p>
-            <div className="flex flex-wrap gap-2">
-              {quickActions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleQuickAction(action)}
-                  className="text-xs px-3 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors border border-blue-200"
-                  disabled={isLoading}
-                >
-                  {action}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Input Area */}
         <div className="p-4 border-t border-gray-200 bg-white rounded-b-2xl">
           <form onSubmit={handleSubmit} className="flex gap-2">
@@ -604,7 +535,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             <button
               type="submit"
               disabled={isLoading || !inputMessage.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               <svg
                 className="w-5 h-5"

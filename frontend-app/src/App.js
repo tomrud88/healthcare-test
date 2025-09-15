@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { AuthProvider } from "./AuthContext";
 import { ChatProvider } from "./ChatContext";
 import Navbar from "./components/Navbar"; // Correctly import the Navbar component
@@ -11,6 +16,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Landing from "./pages/Landing";
 import ProfilePage from "./pages/ProfilePage"; // Import ProfilePage
+import NuffieldHomePage from "./pages/NuffieldHomePage"; // Import new Nuffield Home Page
+import GymsPage from "./pages/GymsPage"; // Import new Gyms Page
 
 // Placeholder page components for other routes
 import DoctorsPage from "./pages/DoctorsPage";
@@ -18,43 +25,59 @@ import ServicesPage from "./pages/ServicesPage";
 import AboutPage from "./pages/PagesComingSoon";
 import DatabaseMigration from "./components/DatabaseMigration";
 
+function AppContent() {
+  const location = useLocation();
+  const isNuffieldHomePage = location.pathname === "/";
+
+  return (
+    <>
+      {/* Only show Navbar if not on Nuffield home page */}
+      {!isNuffieldHomePage && <Navbar />}
+      {/* Added padding to prevent content from being hidden under the fixed Navbar */}
+      <div
+        className="App"
+        style={{ paddingTop: isNuffieldHomePage ? "0" : "20px" }}
+      >
+        <Routes>
+          {/* Set NuffieldHomePage as the default home page */}
+          <Route path="/" element={<NuffieldHomePage />} />
+          {/* Move original landing to /hospitals route */}
+          <Route path="/hospitals" element={<Landing />} />
+          {/* Add gyms page route */}
+          <Route path="/gyms" element={<GymsPage />} />
+          <Route
+            path="/book-appointment"
+            element={<AppointmentBookingPage />}
+          />
+          <Route path="/appointments" element={<AppointmentListPage />} />
+          <Route path="/my-appointments" element={<AppointmentListPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/dashboard" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          {/* Route for ProfilePage */}
+          {/* Placeholder routes for Navbar links */}
+          <Route path="/doctors" element={<DoctorsPage />} />
+          <Route path="/gyms" element={<GymsPage />} />
+          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          {/* Database migration route - for admin use */}
+          <Route path="/migration" element={<DatabaseMigration />} />
+        </Routes>
+      </div>
+      <Footer /> {/* Render the Footer component here */}
+      {/* AI Chat Agent - Available on all pages */}
+      <FloatingChatButton />
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <ChatProvider>
         <Router>
-          {/* Using the Navbar component here */}
-          <Navbar />
-          {/* Added padding to prevent content from being hidden under the fixed Navbar */}
-          <div className="App" style={{ paddingTop: "20px" }}>
-            <Routes>
-              {/* Set Landing as the default home page */}
-              <Route path="/" element={<Landing />} />
-              <Route
-                path="/book-appointment"
-                element={<AppointmentBookingPage />}
-              />
-              <Route path="/appointments" element={<AppointmentListPage />} />
-              <Route
-                path="/my-appointments"
-                element={<AppointmentListPage />}
-              />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/dashboard" element={<ProfilePage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              {/* Route for ProfilePage */}
-              {/* Placeholder routes for Navbar links */}
-              <Route path="/doctors" element={<DoctorsPage />} />
-              <Route path="/services" element={<ServicesPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              {/* Database migration route - for admin use */}
-              <Route path="/migration" element={<DatabaseMigration />} />
-            </Routes>
-          </div>
-          <Footer /> {/* Render the Footer component here */}
-          {/* AI Chat Agent - Available on all pages */}
-          <FloatingChatButton />
+          <AppContent />
         </Router>
       </ChatProvider>
     </AuthProvider>

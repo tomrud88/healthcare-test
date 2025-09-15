@@ -5,14 +5,45 @@ export const doctors = [
   {
     id: "den-001",
     name: "Dr. Emily Carter, BDS",
-    specialty: "Dentist",
+    specialty: "Physiotherapist",
     city: "London",
-    clinic: "London Dental Clinic – Soho",
+    clinic: "Covent Garden Physiotherapist",
+    address: "9, Endell Street, London, WC2H 9SA",
     rating: 4.9,
     reviews: 180,
     image: "https://placehold.co/150x150/5B73FF/FFFFFF?text=Dr.E",
-    bio: "Dr. Carter specializes in comprehensive dental care with a focus on preventive dentistry and cosmetic treatments.",
+    bio: "Dr. Carter specializes in comprehensive physiotherapy with a focus on musculoskeletal rehabilitation and movement therapy.",
     modalities: ["in_person"],
+    pricing: {
+      nonMember: {
+        initialAssessment: {
+          price: 79,
+          currency: "GBP",
+          duration: "45 minutes",
+          description: "Initial Assessment - 45 minutes"
+        },
+        followUp: {
+          price: 52,
+          currency: "GBP", 
+          duration: "30 minutes",
+          description: "Follow Up - 30 minutes"
+        }
+      },
+      member: {
+        initialAssessment: {
+          price: 63.20,
+          currency: "GBP",
+          duration: "45 minutes", 
+          description: "Initial Assessment - 45 minutes"
+        },
+        followUp: {
+          price: 41.60,
+          currency: "GBP",
+          duration: "30 minutes",
+          description: "Follow Up - 30 minutes"
+        }
+      }
+    },
     availability: {
       "2025-09-10": ["09:00", "10:30", "14:00", "15:30"],
       "2025-09-11": ["09:00", "11:00", "13:30", "16:00"],

@@ -1,0 +1,280 @@
+// src/data/gyms.js
+export const gyms = [
+  {
+    id: "covent-garden-fitness-wellbeing-gym",
+    name: "Covent Garden Fitness & Wellbeing Gym",
+    address: {
+      street: "9, Endell Street",
+      city: "London",
+      postcode: "WC2H 9SA",
+      fullAddress: "9, Endell Street, London, WC2H 9SA",
+    },
+    contact: {
+      phone: "020 724 02446",
+      email: "coventgarden@nuffieldhealth.com", // Placeholder
+    },
+    openingHours: {
+      monday: { open: "07:00", close: "22:00" },
+      tuesday: { open: "07:00", close: "22:00" },
+      wednesday: { open: "07:00", close: "22:00" },
+      thursday: { open: "07:00", close: "22:00" },
+      friday: { open: "07:00", close: "21:00" },
+      saturday: { open: "10:00", close: "18:00" },
+      sunday: { open: "10:00", close: "18:00" },
+      bankHolidays: { open: "10:00", close: "18:00" },
+    },
+    offPeakHours: {
+      weekdays: { start: "09:00", end: "17:00" },
+      weekends: "Anytime",
+    },
+    membership: {
+      promotion: {
+        active: true,
+        description: "50% off for rest of the year",
+        condition: "When purchasing a 12 month commitment membership",
+      },
+      anytime: {
+        "12MonthCommitment": {
+          originalPrice: 88.0,
+          discountPrice: 44.0,
+          currency: "GBP",
+          period: "month",
+          commitment: "12 months",
+        },
+        "1MonthRolling": {
+          price: 104.0,
+          currency: "GBP",
+          period: "month",
+          commitment: "No commitment",
+        },
+      },
+    },
+    amenities: [
+      "Swimming Pool",
+      "Sauna/Steam Room",
+      "NuCycle Studio",
+      "Nuffield Health app",
+      "Nuffield Health 24/7",
+    ],
+    experts: ["Personal Trainers", "Physiotherapists", "Swimming Instructors"],
+    images: [
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80", // Gym main
+      "https://images.unsplash.com/photo-1544966503-7cc36a04e6c8?auto=format&fit=crop&w=800&q=80", // Swimming pool
+      "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=800&q=80", // Equipment
+    ],
+    rating: 4.5,
+    reviews: 156,
+    description:
+      "Modern fitness and wellbeing center in the heart of Covent Garden, offering comprehensive facilities including swimming pool, cycling studio, and expert personal training services.",
+    features: {
+      parking: false,
+      accessibleFacilities: true,
+      childcare: false,
+      cafe: true,
+      personalTraining: true,
+      groupClasses: true,
+      swimming: true,
+      sauna: true,
+      app: true,
+      twentyFourSeven: true,
+    },
+    coordinates: {
+      lat: 51.5154,
+      lng: -0.1265,
+    },
+  },
+  {
+    id: "bloomsbury-fitness-wellbeing-gym",
+    name: "Bloomsbury Fitness & Wellbeing Gym",
+    address: {
+      street: "Mecklenburgh Place, Goodenough College",
+      city: "London",
+      postcode: "WC1N 2AY",
+      fullAddress: "Mecklenburgh Place, Goodenough College, London, WC1N 2AY",
+    },
+    contact: {
+      phone: "020 7713 8810",
+      email: "bloomsbury@nuffieldhealth.com",
+    },
+    openingHours: {
+      monday: { open: "06:30", close: "22:00" },
+      tuesday: { open: "06:30", close: "22:00" },
+      wednesday: { open: "06:30", close: "22:00" },
+      thursday: { open: "06:30", close: "22:00" },
+      friday: { open: "06:30", close: "21:00" },
+      saturday: { open: "09:00", close: "19:00" },
+      sunday: { open: "09:00", close: "19:00" },
+      bankHolidays: { open: "09:00", close: "19:00" },
+    },
+    offPeakHours: {
+      weekdays: "09:00-12:00, 14:00-17:00",
+      weekends: "Anytime",
+    },
+    membership: {
+      promotion: {
+        active: true,
+        description: "50% off for rest of the year",
+        condition: "When purchasing a 12 month commitment membership",
+      },
+      anytime: {
+        "12MonthCommitment": {
+          originalPrice: 90.0,
+          discountPrice: 45.0,
+          currency: "GBP",
+          period: "month",
+          commitment: "12 months",
+        },
+        "1MonthRolling": {
+          price: 106.0,
+          currency: "GBP",
+          period: "month",
+          commitment: "No commitment",
+        },
+      },
+    },
+    amenities: [
+      "Technogym Equipment",
+      "Technogym My Wellbeing app",
+      "Swimming Pool",
+      "Sauna/Steam Room",
+      "Squash Courts",
+      "NuCycle Studio",
+      "Nuffield Health 24/7",
+    ],
+    experts: ["Personal Trainers", "Physiotherapists", "Swimming Instructors"],
+    images: [
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1544966503-7cc36a04e6c8?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=800&q=80",
+    ],
+    rating: 4.6,
+    reviews: 203,
+    description:
+      "Our modern club is more than just a gym. With state-of-the-art Technogym equipment, we offer dedicated training areas, exciting boutique classes and versatile equipment for all fitness levels. Adult-only club (except for young people attending our cystic fibrosis programme sessions). Just a 7-minute walk from Russell Square Station.",
+    features: {
+      parking: false,
+      accessibleFacilities: true,
+      childcare: false,
+      cafe: false,
+      personalTraining: true,
+      groupClasses: true,
+      swimming: true,
+      sauna: true,
+      app: true,
+      twentyFourSeven: true,
+      squashCourts: true,
+      adultOnly: true,
+      multiClubAccess: true,
+    },
+    coordinates: {
+      lat: 51.5244,
+      lng: -0.1208,
+    },
+  },
+  {
+    id: "barbican-fitness-wellbeing-centre",
+    name: "Barbican Fitness and Wellbeing Centre",
+    address: {
+      street: "97 Aldersgate Street, Barbican",
+      city: "London",
+      postcode: "EC1A 4JP",
+      fullAddress: "97 Aldersgate Street, Barbican, London, EC1A 4JP",
+    },
+    contact: {
+      phone: "020 3038 8410",
+      email: "barbican@nuffieldhealth.com",
+    },
+    openingHours: {
+      monday: { open: "06:00", close: "22:00" },
+      tuesday: { open: "06:00", close: "22:00" },
+      wednesday: { open: "06:00", close: "22:00" },
+      thursday: { open: "06:00", close: "22:00" },
+      friday: { open: "06:00", close: "21:00" },
+      saturday: { open: "09:00", close: "17:00" },
+      sunday: { open: "09:00", close: "17:00" },
+      bankHolidays: { open: "09:00", close: "17:00" },
+    },
+    offPeakHours: {
+      weekdays: "09:00-17:00",
+      weekends: "Anytime",
+    },
+    membership: {
+      promotion: {
+        active: true,
+        description: "50% off for rest of the year",
+        condition: "When purchasing a 12 month commitment membership",
+      },
+      anytime: {
+        "12MonthCommitment": {
+          originalPrice: 125.0,
+          discountPrice: 62.5,
+          currency: "GBP",
+          period: "month",
+          commitment: "12 months",
+        },
+        "1MonthRolling": {
+          price: 147.0,
+          currency: "GBP",
+          period: "month",
+          commitment: "No commitment",
+        },
+      },
+    },
+    amenities: [
+      "State-of-the-art Gym Floor",
+      "Running Track",
+      "25m Heated Indoor Swimming Pool",
+      "Spa Pool",
+      "Sauna/Steam Room",
+      "Four Group Exercise Studios",
+      "LES MILLS Classes",
+      "Athletic Zone",
+      "Prehab and Rehab Area",
+      "Medical Centre",
+      "Nuffield Health 24/7",
+      "MyZone Technology",
+      "Mobility Zone",
+    ],
+    experts: [
+      "Personal Trainers",
+      "Physiotherapists",
+      "Private GP",
+      "Travel Clinic Services",
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1544966503-7cc36a04e6c8?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=800&q=80",
+    ],
+    rating: 4.7,
+    reviews: 234,
+    description:
+      "Located in the heart of Barbican our centre has a fully connected state-of-the-art multi-million pound gym floor, athletic zone, 25m heated indoor swimming pool, spa pool, sauna and steam room, dedicated prehab and rehab area and four group exercise studios offering a wide range of classes, including all your favourites from LES MILLS. Our on-site medical centre provides expert physiotherapy, emotional wellbeing services, private GP and travel clinic.",
+    features: {
+      parking: false,
+      accessibleFacilities: true,
+      childcare: false,
+      cafe: true,
+      personalTraining: true,
+      groupClasses: true,
+      swimming: true,
+      sauna: true,
+      app: true,
+      twentyFourSeven: true,
+      medicalCentre: true,
+      runningTrack: true,
+      athleticZone: true,
+      lesMills: true,
+      myZone: true,
+      mobilityZone: true,
+      spaPool: true,
+      multiClubAccess: true,
+    },
+    coordinates: {
+      lat: 51.5205,
+      lng: -0.0982,
+    },
+  },
+];
+
+export default gyms;

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background circle with Nuffield green -->
+  <circle cx="16" cy="16" r="16" fill="#16a34a"/>
+  
+  <!-- White medical cross -->
+  <g fill="white">
+    <!-- Vertical bar -->
+    <rect x="13.5" y="7" width="5" height="18" rx="1"/>
+    <!-- Horizontal bar -->
+    <rect x="7" y="13.5" width="18" height="5" rx="1"/>
+  </g>
+  
+  <!-- Small "N" in bottom right corner -->
+  <text x="22" y="28" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="white">N</text>
+</svg>
