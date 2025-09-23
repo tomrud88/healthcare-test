@@ -6,7 +6,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+COPY service-account-key.json ./service-account-key.json
 
-EXPOSE 3001
+EXPOSE 8080
 
 CMD ["npm", "start"]

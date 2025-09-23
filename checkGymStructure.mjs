@@ -3,10 +3,10 @@ import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "<YOUR_FIREBASE_API_KEY>",
-  authDomain: "<YOUR_FIREBASE_AUTH_DOMAIN>",
-  projectId: "<YOUR_FIREBASE_PROJECT_ID>",
-  storageBucket: "<YOUR_FIREBASE_STORAGE_BUCKET>",
+  apiKey: "AIzaSyDSzlaZnBjNnp3l2ggAr3gJWtjuFFfWTq4",
+  authDomain: "healthcare-test-48a56.firebaseapp.com",
+  projectId: "healthcare-test-48a56",
+  storageBucket: "healthcare-test-48a56.firebasestorage.app",
   messagingSenderId: "869934807023",
   appId: "1:869934807023:web:85a509d3ae1aef0b5b3b20",
 };

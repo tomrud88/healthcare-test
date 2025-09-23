@@ -1,5 +1,58 @@
-// backend-services/index.js
 const functions = require("firebase-functions");
+const axios = require("axios");
+
+// OpenAI Health Search Proxy
+exports.openaiHealthSearch = functions.https.onRequest(async (req, res) => {
+  // CORS Preflight handling
+  if (req.method === "OPTIONS") {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.set("Access-Control-Max-Age", "3600");
+    return res.status(204).send("");
+  }
+
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { query } = req.body;
+  if (!query) {
+    return res.status(400).json({ error: "Missing query parameter" });
+  }
+  try {
+    // Gemini API key (Google AI) from Firebase environment config
+    const geminiApiKey = functions.config().gemini && functions.config().gemini.key;
+    if (!geminiApiKey) {
+      return res.status(500).json({ error: "Gemini API key not configured" });
+    }
+    const response = await axios.post(
+      "https://generativelanguage.googleapis.com/v1beta1/models/gemini-pro:generateContent?key=" + geminiApiKey,
+      {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: query }],
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text || "No info found.";
+    res.json({ result: answer });
+  } catch (err) {
+    console.error("Gemini health search error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch info from Gemini" });
+  }
+});
 const admin = require("firebase-admin");
 
 // Initialize Firebase Admin

@@ -16,7 +16,6 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Landing from "./pages/Landing";
 import ProfilePage from "./pages/ProfilePage"; // Import ProfilePage
-import NuffieldHomePage from "./pages/NuffieldHomePage"; // Import new Nuffield Home Page
 import GymsPage from "./pages/GymsPage"; // Import new Gyms Page
 
 // Placeholder page components for other routes
@@ -27,22 +26,17 @@ import DatabaseMigration from "./components/DatabaseMigration";
 
 function AppContent() {
   const location = useLocation();
-  const isNuffieldHomePage = location.pathname === "/";
+  const isLandingPage = location.pathname === "/";
 
   return (
     <>
-      {/* Only show Navbar if not on Nuffield home page */}
-      {!isNuffieldHomePage && <Navbar />}
+      {/* Always show Navbar */}
+      <Navbar />
       {/* Added padding to prevent content from being hidden under the fixed Navbar */}
-      <div
-        className="App"
-        style={{ paddingTop: isNuffieldHomePage ? "0" : "20px" }}
-      >
+      <div className="App" style={{ paddingTop: isLandingPage ? "0" : "20px" }}>
         <Routes>
-          {/* Set NuffieldHomePage as the default home page */}
-          <Route path="/" element={<NuffieldHomePage />} />
-          {/* Move original landing to /hospitals route */}
-          <Route path="/hospitals" element={<Landing />} />
+          {/* Set Landing as the default home page */}
+          <Route path="/" element={<Landing />} />
           {/* Add gyms page route */}
           <Route path="/gyms" element={<GymsPage />} />
           <Route

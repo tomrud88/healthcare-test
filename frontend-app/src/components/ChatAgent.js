@@ -10,6 +10,30 @@ import { AuthContext } from "../AuthContext";
 import { useChatContext } from "../ChatContext";
 
 const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
+  // Voice input state and handler
+  const [isListening, setIsListening] = useState(false);
+  const startVoiceInput = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech recognition not supported in this browser.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInputMessage(transcript); // Set recognized text as input
+    };
+
+    recognition.start();
+  };
   const { externalMessages, clearExternalMessages } = useChatContext();
   const [messages, setMessages] = useState([]); // Start with empty messages
   const [inputMessage, setInputMessage] = useState("");
@@ -328,6 +352,14 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end p-4 lg:p-6">
+      {/* Voice Input Button */}
+      <button
+        onClick={startVoiceInput}
+        disabled={isListening}
+        className="mb-2 bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md"
+      >
+        {isListening ? "Listening..." : "Start Voice Input"}
+      </button>
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black bg-opacity-25 backdrop-blur-sm"
@@ -337,7 +369,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       {/* Chat Window */}
       <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md h-[600px] flex flex-col animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <span className="text-xl">👩‍⚕️</span>
@@ -383,7 +415,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
               >
                 {message.isBot && (
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
                       <span className="text-xs">👩‍⚕️</span>
                     </div>
                     <span className="text-xs text-gray-500">
@@ -399,7 +431,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                         ? message.isError
                           ? "bg-red-100 text-red-800 border border-red-200"
                           : "bg-white text-gray-800 border border-gray-200 shadow-sm"
-                        : "bg-green-600 text-white"
+                        : "bg-blue-600 text-white"
                     }`}
                   >
                     {message.text}
@@ -425,7 +457,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                                       <button
                                         key={optionIndex}
                                         onClick={() => sendMessage(option.text)}
-                                        className="px-3 py-1 bg-green-50 hover:bg-green-100 text-green-700 rounded-full text-sm border border-green-200 transition-colors duration-200"
+                                        className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-sm border border-blue-200 transition-colors duration-200"
                                       >
                                         {option.text}
                                       </button>
@@ -492,7 +524,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             <div className="flex justify-start">
               <div className="max-w-[80%]">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
                     <span className="text-xs">👩‍⚕️</span>
                   </div>
                   <span className="text-xs text-gray-500">
@@ -533,12 +565,20 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
               disabled={isLoading}
             />
             <button
+              type="button"
+              onClick={startVoiceInput}
+              disabled={isListening}
+              className="px-4 py-2 w-12 h-12 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md flex items-center justify-center text-lg"
+            >
+              {isListening ? "🎤" : "🎤"}
+            </button>
+            <button
               type="submit"
               disabled={isLoading || !inputMessage.trim()}
-              className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+              className="px-4 py-2 w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-lg"
             >
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

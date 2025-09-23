@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import { useAuth } from "./AuthContext"; // Import useAuth hook
 
-// Import your page components (we'll create these next)
+// Import your page components
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -16,6 +16,7 @@ import AppointmentBookingPage from "./pages/AppointmentBookingPage";
 import AppointmentListPage from "./pages/AppointmentListPage";
 import DigitalRegistrationPage from "./pages/DigitalRegistrationPage";
 import Landing from "./pages/Landing";
+// import NuffieldHomePage from "./pages/NuffieldHomePage"; // Remove Nuffield front page
 
 // A simple PrivateRoute component to protect routes
 const PrivateRoute = ({ children }) => {
@@ -38,6 +39,7 @@ function AppRoutes() {
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<LoginPage />} />
+        {/* Remove NuffieldHomePage route if present */}
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected Routes */}

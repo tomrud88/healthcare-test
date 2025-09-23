@@ -54,7 +54,7 @@ const FloatingChatButton = () => {
       {!isChatOpen && (
         <button
           onClick={openChat}
-          className="group fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50 bg-green-600 hover:bg-green-700"
+          className="group fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50 bg-blue-600 hover:bg-blue-700"
           style={{ zIndex: 9999 }}
           aria-label="Open chat"
         >
@@ -76,7 +76,7 @@ const FloatingChatButton = () => {
           </div>
 
           {/* Notification Dot */}
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse pointer-events-none">
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white animate-pulse pointer-events-none">
             <span className="sr-only">New messages</span>
           </div>
 

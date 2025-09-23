@@ -1,3 +1,50 @@
+// --- OPENAI HEALTH SEARCH ENDPOINT ---
+app.post("/openai-health-search", async (req, res) => {
+  const { query } = req.body;
+  if (!query) {
+    return res.status(400).json({ error: "Missing query parameter" });
+  }
+  try {
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    if (!openaiApiKey) {
+      return res.status(500).json({ error: "OpenAI API key not configured" });
+    }
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful medical assistant. Provide concise, accurate health and medical information for user queries. If asked about a condition, explain what it is, symptoms, and general advice.",
+          },
+          {
+            role: "user",
+            content: query,
+          },
+        ],
+        max_tokens: 500,
+        temperature: 0.2,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openaiApiKey}`,
+        },
+      }
+    );
+    const answer =
+      response.data.choices?.[0]?.message?.content || "No info found.";
+    res.json({ result: answer });
+  } catch (err) {
+    console.error(
+      "OpenAI health search error:",
+      err.response?.data || err.message
+    );
+    res.status(500).json({ error: "Failed to fetch info from OpenAI" });
+  }
+});
 /**
  * Conversational Agent: demo-healthcare-agent (project: healthcare-patient-portal, region: global)
  * Purpose: Triage symptoms and book appointments.
@@ -29,7 +76,7 @@ const axios = require("axios");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
 // Configure CORS for your local React app
 app.use(

@@ -2,42 +2,7 @@ import React from "react";
 import { Search, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function NuffieldHomePage() {
-  const navigate = useNavigate();
-
-  const handleHospitalsClick = () => {
-    navigate("/hospitals"); // Navigate to the hospitals page (original landing page)
-  };
-
-  const handleGymsClick = () => {
-    navigate("/gyms"); // Navigate to the gyms page
-  };
-
-  const handleLoginClick = () => {
-    navigate("/login");
-  };
-
-  const handleBookOnlineClick = () => {
-    navigate("/book-appointment");
-  };
-
-  return (
-    <div className="font-sans">
-      {/* Top header */}
-      <header className="bg-green-600 text-white">
-        <div className="max-w-7xl mx-auto flex items-center justify-between p-4">
-          {/* Logo */}
-          <div className="flex items-center space-x-2 font-bold text-lg">
-            <span className="bg-white text-green-600 font-bold px-2 py-1 rounded">
-              NH
-            </span>
-            <span>Nuffield Health</span>
-          </div>
-
-          {/* Search bar */}
-          <div className="flex-1 mx-6 relative">
-            <input
-              type="text"
+// Deprecated: NuffieldHomePage.js is intentionally left blank to prevent build errors.
               placeholder="What would you like to do today?"
               className="w-full rounded-full py-2 px-4 text-gray-700"
             />
