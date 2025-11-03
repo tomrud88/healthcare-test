@@ -55,7 +55,10 @@ const FloatingChatButton = () => {
         <button
           onClick={openChat}
           className="group fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50 bg-blue-600 hover:bg-blue-700"
-          style={{ zIndex: 9999 }}
+          style={{
+            zIndex: 9999,
+            background: "linear-gradient(135deg, #5B73FF 0%, #445CE0 100%)",
+          }}
           aria-label="Open chat"
         >
           {/* Chat Icon */}
@@ -89,7 +92,7 @@ const FloatingChatButton = () => {
           </div>
 
           {/* Pulse animation ring - positioned absolute inside button */}
-          <div className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ping opacity-75 pointer-events-none"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-blue-300 animate-ping opacity-75 pointer-events-none"></div>
         </button>
       )}
 

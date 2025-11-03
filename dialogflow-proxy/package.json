@@ -1,0 +1,15 @@
+{
+  "name": "dialogflow-proxy",
+  "version": "1.0.0",
+  "description": "Dialogflow CX proxy for healthcare chatbot",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.0.0",
+    "google-auth-library": "^9.0.0",
+    "axios": "^1.6.0"
+  },
+  "scripts": {
+    "start": "functions-framework --target dialogflowProxy"
+  }
+}

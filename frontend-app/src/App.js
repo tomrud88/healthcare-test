@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./AuthContext";
 import { ChatProvider } from "./ChatContext";
 import Navbar from "./components/Navbar"; // Correctly import the Navbar component
@@ -15,30 +10,25 @@ import AppointmentListPage from "./pages/AppointmentListPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import Landing from "./pages/Landing";
+import DoctorsPage from "./pages/DoctorsPage"; // Import DoctorsPage for home
 import ProfilePage from "./pages/ProfilePage"; // Import ProfilePage
 import GymsPage from "./pages/GymsPage"; // Import new Gyms Page
 
 // Placeholder page components for other routes
-import DoctorsPage from "./pages/DoctorsPage";
 import ServicesPage from "./pages/ServicesPage";
 import AboutPage from "./pages/PagesComingSoon";
 import DatabaseMigration from "./components/DatabaseMigration";
 
 function AppContent() {
-  const location = useLocation();
-  const isLandingPage = location.pathname === "/";
-
   return (
     <>
-      {/* Always show Navbar */}
+      {/* Always show navbar now that we removed Nuffield home page */}
       <Navbar />
       {/* Added padding to prevent content from being hidden under the fixed Navbar */}
-      <div className="App" style={{ paddingTop: isLandingPage ? "0" : "20px" }}>
+      <div className="App" style={{ paddingTop: "20px" }}>
         <Routes>
-          {/* Set Landing as the default home page */}
           <Route path="/" element={<Landing />} />
           {/* Add gyms page route */}
-          <Route path="/gyms" element={<GymsPage />} />
           <Route
             path="/book-appointment"
             element={<AppointmentBookingPage />}
@@ -50,8 +40,9 @@ function AppContent() {
           <Route path="/dashboard" element={<ProfilePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           {/* Route for ProfilePage */}
-          {/* Placeholder routes for Navbar links */}
+          {/* Updated routes for Navbar links */}
           <Route path="/doctors" element={<DoctorsPage />} />
+          <Route path="/hospitals" element={<Landing />} />
           <Route path="/gyms" element={<GymsPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/about" element={<AboutPage />} />

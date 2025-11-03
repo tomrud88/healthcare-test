@@ -125,7 +125,7 @@ export default function Navbar() {
             Home
           </Link>
 
-          {/* Always visible Doctors and Services tabs */}
+          {/* Navigation tabs */}
           <Link
             to="/doctors"
             className={linkClasses("/doctors")}

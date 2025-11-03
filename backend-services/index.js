@@ -26,12 +26,14 @@ exports.openaiHealthSearch = functions.https.onRequest(async (req, res) => {
   }
   try {
     // Gemini API key (Google AI) from Firebase environment config
-    const geminiApiKey = functions.config().gemini && functions.config().gemini.key;
+    const geminiApiKey =
+      functions.config().gemini && functions.config().gemini.key;
     if (!geminiApiKey) {
       return res.status(500).json({ error: "Gemini API key not configured" });
     }
     const response = await axios.post(
-      "https://generativelanguage.googleapis.com/v1beta1/models/gemini-pro:generateContent?key=" + geminiApiKey,
+      "https://generativelanguage.googleapis.com/v1beta1/models/gemini-pro:generateContent?key=" +
+        geminiApiKey,
       {
         contents: [
           {
@@ -46,10 +48,15 @@ exports.openaiHealthSearch = functions.https.onRequest(async (req, res) => {
         },
       }
     );
-    const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text || "No info found.";
+    const answer =
+      response.data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No info found.";
     res.json({ result: answer });
   } catch (err) {
-    console.error("Gemini health search error:", err.response?.data || err.message);
+    console.error(
+      "Gemini health search error:",
+      err.response?.data || err.message
+    );
     res.status(500).json({ error: "Failed to fetch info from Gemini" });
   }
 });

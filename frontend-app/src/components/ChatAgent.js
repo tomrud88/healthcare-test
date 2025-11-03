@@ -1,4 +1,3 @@
-// src/components/ChatAgent.js
 import React, {
   useState,
   useRef,
@@ -8,37 +7,41 @@ import React, {
 } from "react";
 import { AuthContext } from "../AuthContext";
 import { useChatContext } from "../ChatContext";
+import MedicalReportUploader from "./MedicalReportUploader";
+
+// Helper: Split long text into chunks of <= 200 characters (try to split by sentence)
+function splitTextForSpeech(text, maxLength = 200) {
+  if (!text || text.length <= maxLength) return [text];
+  const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+  const chunks = [];
+  let current = "";
+  for (const sentence of sentences) {
+    if ((current + sentence).length > maxLength) {
+      if (current) chunks.push(current);
+      current = sentence;
+    } else {
+      current += sentence;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
 
 const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
-  // Voice input state and handler
   const [isListening, setIsListening] = useState(false);
-  const startVoiceInput = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Speech recognition not supported in this browser.");
-      return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+  const [speechEnabled, setSpeechEnabled] = useState(false);
+  const [showUploader, setShowUploader] = useState(false);
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
+  const lastSpokenIdRef = useRef(null);
+  const [speakingMessageId, setSpeakingMessageId] = useState(null);
+  const speechChunksRef = useRef([]);
+  const speechChunkIndexRef = useRef(0);
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInputMessage(transcript); // Set recognized text as input
-    };
-
-    recognition.start();
-  };
   const { externalMessages, clearExternalMessages } = useChatContext();
-  const [messages, setMessages] = useState([]); // Start with empty messages
+  const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false); // Track if welcome message sent
+  const [hasInitialized, setHasInitialized] = useState(false);
   const [sessionId] = useState(
     () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   );
@@ -47,21 +50,83 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
   const inputRef = useRef(null);
   const { currentUser } = useContext(AuthContext);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Function to send welcome message to Dialogflow
+  const stopSpeech = useCallback(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+    }
+  }, []);
+
+  const speakText = useCallback(
+    (text, messageId = null) => {
+      if (!speechEnabled) return;
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        return;
+      }
+      if (!text) return;
+
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(messageId);
+      const chunks = splitTextForSpeech(text, 200);
+      speechChunksRef.current = chunks;
+      speechChunkIndexRef.current = 0;
+
+      const speakChunk = () => {
+        const chunk = speechChunksRef.current[speechChunkIndexRef.current];
+        if (!chunk) {
+          setSpeakingMessageId(null);
+          return;
+        }
+        const utterance = new window.SpeechSynthesisUtterance(chunk);
+        utterance.lang = "en-US";
+        utterance.onend = () => {
+          speechChunkIndexRef.current += 1;
+          if (speechChunkIndexRef.current < speechChunksRef.current.length) {
+            speakChunk();
+          } else {
+            setSpeakingMessageId(null);
+          }
+        };
+        window.speechSynthesis.speak(utterance);
+      };
+
+      speakChunk();
+    },
+    [speechEnabled]
+  );
+
+  useEffect(() => {
+    if (!speechEnabled) {
+      stopSpeech();
+    }
+  }, [speechEnabled, stopSpeech]);
+
+  useEffect(() => {
+    if (!speechEnabled) return;
+    const botMessages = messages.filter(
+      (msg) => msg.isBot && msg.text && msg.text.trim()
+    );
+    if (botMessages.length === 0) return;
+    const latestBotMsg = botMessages[botMessages.length - 1];
+    if (lastSpokenIdRef.current !== latestBotMsg.id) {
+      const timer = setTimeout(() => {
+        speakText(latestBotMsg.text, latestBotMsg.id);
+        lastSpokenIdRef.current = latestBotMsg.id;
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [messages, speechEnabled, speakText]);
+
   const sendWelcomeMessage = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      // Use production endpoint when deployed, localhost for development
       const apiEndpoint =
-        process.env.NODE_ENV === "production"
-          ? "https://us-central1-healthcare-patient-portal.cloudfunctions.net/dialogflowProxy"
-          : "http://localhost:3001/dialogflow-proxy";
+        "https://us-central1-healthcare-poc-477108.cloudfunctions.net/dialogflowProxy";
 
       const response = await fetch(apiEndpoint, {
         method: "POST",
@@ -71,9 +136,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         body: JSON.stringify({
           sessionId: sessionId,
           queryInput: {
-            text: {
-              text: "hello", // Trigger welcome intent
-            },
+            text: { text: "hello" },
             languageCode: "en",
           },
         }),
@@ -85,11 +148,9 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
       const data = await response.json();
 
-      // Debug: Log the full response to see what we're getting
       console.log("=== FULL DIALOGFLOW RESPONSE ===");
       console.log(JSON.stringify(data, null, 2));
 
-      // Extract response text from Dialogflow
       let botResponseText =
         "👋 Hello! I'm your Health Consultant. How can I help you today?";
       let richContent = null;
@@ -100,13 +161,11 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         console.log("=== RESPONSE MESSAGES ===");
         console.log(JSON.stringify(responseMessages, null, 2));
 
-        // Look for text response
         const textResponse = responseMessages.find((msg) => msg.text);
         if (textResponse && textResponse.text && textResponse.text.text) {
           botResponseText = textResponse.text.text.join(" ");
         }
 
-        // Look for custom payload (rich content)
         const payloadResponse = responseMessages.find((msg) => msg.payload);
         if (payloadResponse && payloadResponse.payload) {
           console.log("=== FOUND RICH CONTENT ===");
@@ -121,19 +180,17 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         }
       }
 
-      // Add bot welcome message to chat
       const welcomeMessage = {
         id: Date.now(),
         text: botResponseText,
         isBot: true,
         timestamp: new Date(),
-        richContent: richContent,
+        richContent,
       };
-      setMessages((prev) => [welcomeMessage, ...prev]); // Prepend welcome message instead of replacing all
+      setMessages((prev) => [...prev, welcomeMessage]);
     } catch (error) {
       console.error("Error getting welcome message from Dialogflow:", error);
 
-      // Fallback welcome message if Dialogflow is unavailable
       const fallbackMessage = {
         id: Date.now(),
         text: "👋 Hello! I'm your Health Consultant. How can I help you today?\n\n• Book appointments\n• Find doctors\n• General health questions\n• And much more!\n\n(Note: AI assistant is currently offline, but I can still help you navigate the site!)",
@@ -141,51 +198,50 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         timestamp: new Date(),
         isError: true,
       };
-      setMessages((prev) => [fallbackMessage, ...prev]); // Prepend welcome message instead of replacing all
+      setMessages((prev) => [...prev, fallbackMessage]);
     } finally {
       setIsLoading(false);
-      // Auto-focus the input field after welcome message
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [sessionId]);
 
-  // Focus input when chat opens and send welcome message
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
-
-      // Send welcome message to Dialogflow when chat opens for the first time
-      // But wait a bit to allow external messages to load first
       if (!hasInitialized) {
         setTimeout(() => {
           setHasInitialized(true);
           sendWelcomeMessage();
-        }, 200); // Small delay to let external messages load first
+        }, 200);
       }
+    } else {
+      stopSpeech();
     }
-  }, [isOpen, hasInitialized, sendWelcomeMessage]);
+  }, [isOpen, hasInitialized, sendWelcomeMessage, stopSpeech]);
 
-  // Handle external messages from other components
+  useEffect(() => {
+    if (isOpen) {
+      setSpeechEnabled(false);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (externalMessages.length > 0) {
-      console.log("External messages received:", externalMessages); // Debug log
-
-      // Add external messages to the chat history permanently
+      console.log("External messages received:", externalMessages);
       setMessages((prev) => {
-        // Check if these messages are already in the chat to avoid duplicates
         const existingIds = new Set(prev.map((msg) => msg.id));
         const newMessages = externalMessages
           .filter((msg) => !existingIds.has(msg.id))
           .map((msg) => ({
             ...msg,
-            timestamp: new Date(msg.timestamp), // Convert timestamp back to Date object
-            isBot: false, // Make sure it shows as user message (confirmation)
+            timestamp: new Date(msg.timestamp),
+            isBot: false,
           }));
 
-        console.log("Adding new messages to chat:", newMessages); // Debug log
+        console.log("Adding new messages to chat:", newMessages);
 
         if (newMessages.length > 0) {
-          clearExternalMessages(); // Clear from external queue after adding to main chat
+          clearExternalMessages();
           return [...prev, ...newMessages];
         }
         return prev;
@@ -193,28 +249,18 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     }
   }, [externalMessages, clearExternalMessages]);
 
-  // Load external messages when chat first opens
-  useEffect(() => {
-    if (isOpen && externalMessages.length > 0) {
-      // This will trigger the effect above to load any pending external messages
-    }
-  }, [isOpen, externalMessages.length]);
-
-  // Handle pending message from FloatingChatButton
   useEffect(() => {
     if (pendingMessage && isOpen) {
       console.log("ChatAgent: Adding pending message to chat:", pendingMessage);
       const messageToAdd = {
         id: pendingMessage.id || `pending-${Date.now()}`,
         text: pendingMessage.text,
-        isBot: false, // Show as user message (confirmation)
+        isBot: false,
         timestamp: new Date(pendingMessage.timestamp || new Date()),
         isExternal: true,
       };
 
-      // Add the message to chat
       setMessages((prev) => {
-        // Check if message already exists
         const exists = prev.some((msg) => msg.id === messageToAdd.id);
         if (!exists) {
           console.log("ChatAgent: Adding message to chat:", messageToAdd);
@@ -229,7 +275,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
   const sendMessage = async (messageText) => {
     if (!messageText.trim()) return;
 
-    // Add user message to chat
     const userMessage = {
       id: Date.now(),
       text: messageText,
@@ -241,13 +286,9 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setIsLoading(true);
 
     try {
-      // Use production endpoint when deployed, localhost for development
       const apiEndpoint =
-        process.env.NODE_ENV === "production"
-          ? "https://us-central1-healthcare-patient-portal.cloudfunctions.net/dialogflowProxy"
-          : "http://localhost:3001/dialogflow-proxy";
+        "https://us-central1-healthcare-poc-477108.cloudfunctions.net/dialogflowProxy";
 
-      // Call proxy server
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
@@ -270,14 +311,8 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
       const data = await response.json();
 
-      // Debug: Log the full response to see what we're getting
       console.log("=== FULL DIALOGFLOW RESPONSE (sendMessage) ===");
       console.log(JSON.stringify(data, null, 2));
-
-      // Extract response text from Dialogflow
-      let botResponseText =
-        "Sorry, I didn't understand that. Could you please rephrase?";
-      let richContent = null;
 
       if (data.queryResult && data.queryResult.responseMessages) {
         const responseMessages = data.queryResult.responseMessages;
@@ -285,7 +320,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         console.log("=== RESPONSE MESSAGES (sendMessage) ===");
         console.log(JSON.stringify(responseMessages, null, 2));
 
-        // Map all text responses to bot messages
         const botMessages = [];
         responseMessages.forEach((msg) => {
           if (msg.text && msg.text.text) {
@@ -299,7 +333,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
           if (msg.payload) {
             botMessages.push({
               id: Date.now() + Math.random(),
-              text: "", // No text, just rich content
+              text: "",
               isBot: true,
               timestamp: new Date(),
               richContent: msg.payload,
@@ -311,7 +345,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     } catch (error) {
       console.error("Error communicating with chat agent:", error);
 
-      // Add error message to chat
       const errorMessage = {
         id: Date.now() + 1,
         text: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment, or contact our support team if the issue persists.",
@@ -322,7 +355,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      // Auto-focus the input field after bot responds
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
@@ -340,36 +372,126 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
   };
 
   const formatTime = (timestamp) => {
-    // Ensure timestamp is a Date object
     const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-    return date.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const handleChipClick = (chipText) => {
+    if (chipText === "Upload Reports") {
+      setShowUploader(true);
+      sendMessage("Upload Reports");
+    } else {
+      sendMessage(chipText);
+    }
+  };
+
+  const handleFileUploaded = async (fileUrl) => {
+    setShowUploader(false);
+    setIsLoading(true);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: `I have uploaded my medical report. File URL: ${fileUrl}`,
+        isBot: false,
+        timestamp: new Date(),
+      },
+    ]);
+
+    try {
+      const webhookResponse = await fetch(
+        "https://upload-medical-documents-141631215651.europe-west2.run.app/webhook",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionInfo: { parameters: { file_url: fileUrl } },
+          }),
+        }
+      );
+      if (!webhookResponse.ok) {
+        throw new Error("Failed to process report.");
+      }
+      const result = await webhookResponse.json();
+      const messagesList = result?.fulfillment_response?.messages;
+      if (messagesList && messagesList[0]?.text?.text?.[0]) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: messagesList[0].text.text[0],
+            isBot: true,
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: "No summary received.",
+            isBot: true,
+            timestamp: new Date(),
+            isError: true,
+          },
+        ]);
+      }
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          text: "Error: " + (err.message || "Failed to get summary."),
+          isBot: true,
+          timestamp: new Date(),
+          isError: true,
+        },
+      ]);
+    }
+    setIsLoading(false);
+  };
+
+  const startVoiceInput = () => {
+    const SpeechRecognition =
+      typeof window !== "undefined" &&
+      (window.SpeechRecognition || window.webkitSpeechRecognition);
+    if (!SpeechRecognition) {
+      alert("Speech recognition not supported in this browser.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInputMessage(transcript);
+    };
+
+    recognition.start();
+  };
+
+  const handleClose = () => {
+    stopSpeech();
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end p-4 lg:p-6">
-      {/* Voice Input Button */}
-      <button
-        onClick={startVoiceInput}
-        disabled={isListening}
-        className="mb-2 bg-green-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md"
-      >
-        {isListening ? "Listening..." : "Start Voice Input"}
-      </button>
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black bg-opacity-25 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* Chat Window */}
-      <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md h-[600px] flex flex-col animate-slide-up">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-2xl">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-blue-200/60 flex flex-col h-[min(90vh,700px)]">
+        <div
+          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-3 rounded-t-2xl flex items-center justify-between gap-3"
+          style={{
+            background: "linear-gradient(135deg, #5B73FF 0%, #445CE0 100%)",
+          }}
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <span className="text-xl">👩‍⚕️</span>
@@ -379,28 +501,48 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
               <p className="text-xs opacity-90">Online • Ready to help</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSpeechEnabled((prev) => !prev)}
+              className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors duration-200"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              {speechEnabled ? "🔊 Speech On" : "🔇 Speech Off"}
+            </button>
+            <button
+              type="button"
+              onClick={startVoiceInput}
+              disabled={isListening}
+              className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isListening ? "Listening…" : "🎤 Voice"}
+            </button>
+            <button
+              onClick={handleClose}
+              className="text-white/80 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+              aria-label="Close chat"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        <div
+          className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+          aria-live="polite"
+        >
           {messages.map((message) => (
             <div
               key={message.id}
@@ -423,22 +565,50 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                     </span>
                   </div>
                 )}
-                {/* Only render message bubble if text is not empty */}
                 {message.text && message.text.trim() ? (
                   <div
-                    className={`px-4 py-2 rounded-2xl whitespace-pre-wrap ${
+                    className={`px-4 py-2 rounded-2xl whitespace-pre-wrap flex gap-3 items-start ${
                       message.isBot
                         ? message.isError
                           ? "bg-red-100 text-red-800 border border-red-200"
                           : "bg-white text-gray-800 border border-gray-200 shadow-sm"
                         : "bg-blue-600 text-white"
                     }`}
+                    style={{
+                      outline:
+                        message.isBot && message.id === speakingMessageId
+                          ? "2px solid #5B73FF"
+                          : "none",
+                    }}
                   >
-                    {message.text}
+                    <span className="flex-1">{message.text}</span>
+                    {message.isBot && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          aria-label="Play message"
+                          className={`text-blue-600 hover:text-blue-700 text-lg ${
+                            message.id === speakingMessageId && speechEnabled
+                              ? "animate-pulse"
+                              : ""
+                          }`}
+                          onClick={() => speakText(message.text, message.id)}
+                          disabled={!speechEnabled}
+                        >
+                          ▶
+                        </button>
+                        <button
+                          aria-label="Stop speech"
+                          className="text-blue-600 hover:text-blue-700 text-lg"
+                          onClick={stopSpeech}
+                          disabled={!speechEnabled}
+                        >
+                          ■
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : null}
 
-                {/* Rich content (chips) */}
                 {message.isBot && message.richContent && (
                   <div className="mt-2">
                     {message.richContent.richContent &&
@@ -446,7 +616,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                         (section, sectionIndex) => (
                           <div key={sectionIndex}>
                             {section.map((item, itemIndex) => {
-                              // Render chips
                               if (item.type === "chips" && item.options) {
                                 return (
                                   <div
@@ -456,7 +625,9 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                                     {item.options.map((option, optionIndex) => (
                                       <button
                                         key={optionIndex}
-                                        onClick={() => sendMessage(option.text)}
+                                        onClick={() =>
+                                          handleChipClick(option.text)
+                                        }
                                         className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full text-sm border border-blue-200 transition-colors duration-200"
                                       >
                                         {option.text}
@@ -465,10 +636,8 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                                   </div>
                                 );
                               }
-                              // Render buttons
                               if (item.type === "button") {
                                 if (item.link) {
-                                  // External link button
                                   return (
                                     <a
                                       key={itemIndex}
@@ -482,18 +651,17 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                                       {item.text}
                                     </a>
                                   );
-                                } else if (item.event) {
-                                  // Event button (can be handled with a callback if needed)
+                                }
+                                if (item.event) {
                                   return (
                                     <button
                                       key={itemIndex}
-                                      onClick={() => {
-                                        // TODO: handle custom event if needed
+                                      onClick={() =>
                                         alert(
                                           "Event triggered: " +
                                             (item.event.name || "")
-                                        ); // Replace with real handler
-                                      }}
+                                        )
+                                      }
                                       className="px-3 py-1 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-full text-sm border border-yellow-200 transition-colors duration-200 mr-2 mt-2"
                                     >
                                       {item.text}
@@ -519,12 +687,31 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             </div>
           ))}
 
-          {/* Loading indicator */}
+          {showUploader && (
+            <div className="flex justify-start">
+              <div className="max-w-[80%]">
+                <div className="bg-white border border-blue-200 rounded-2xl px-4 py-4 shadow-sm">
+                  <p className="text-sm font-semibold text-blue-700 mb-3">
+                    Upload medical report
+                  </p>
+                  <MedicalReportUploader onFileUploaded={handleFileUploaded} />
+                  <button
+                    type="button"
+                    onClick={() => setShowUploader(false)}
+                    className="mt-3 text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    Cancel upload
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {isLoading && (
             <div className="flex justify-start">
               <div className="max-w-[80%]">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                     <span className="text-xs">👩‍⚕️</span>
                   </div>
                   <span className="text-xs text-gray-500">
@@ -551,7 +738,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className="p-4 border-t border-gray-200 bg-white rounded-b-2xl">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
@@ -568,9 +754,9 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
               type="button"
               onClick={startVoiceInput}
               disabled={isListening}
-              className="px-4 py-2 w-12 h-12 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md flex items-center justify-center text-lg"
+              className="px-4 py-2 w-12 h-12 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors duration-300 shadow-md flex items-center justify-center text-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isListening ? "🎤" : "🎤"}
+              🎤
             </button>
             <button
               type="submit"
