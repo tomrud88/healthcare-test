@@ -20,7 +20,7 @@ function MedicalReportUploader({ onFileUploaded }) {
 
       // Updated to real backend endpoint:
       const response = await fetch(
-        "https://upload-medical-documents-141631215651.europe-west2.run.app/upload",
+        "https://upload-medical-documents-750964638675.us-central1.run.app/upload",
         {
           method: "POST",
           body: formData,
