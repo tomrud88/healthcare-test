@@ -5,7 +5,7 @@ const { GoogleAuth } = require("google-auth-library");
 const axios = require("axios");
 
 // Dialogflow CX configuration
-const PROJECT_ID = "demo-healthcare";
+const PROJECT_ID = "healthcare-poc-477108";
 const LOCATION = "global";
 const AGENT_ID = "03c1c934-c637-4b3c-95da-0ad5354ff93e";
 
