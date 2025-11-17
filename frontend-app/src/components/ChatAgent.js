@@ -401,7 +401,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
     try {
       const webhookResponse = await fetch(
-        "https://upload-medical-documents-141631215651.europe-west2.run.app/webhook",
+        "https://upload-medical-documents-750964638675.us-central1.run.app/webhook",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
