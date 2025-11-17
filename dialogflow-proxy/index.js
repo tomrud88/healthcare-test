@@ -202,42 +202,64 @@ functions.http("dialogflowProxy", async (req, res) => {
   try {
     // Extract user message from the request
     const userMessage = req.body?.queryInput?.text?.text || "hello";
+    const sessionId = req.body?.sessionId || "default-session";
 
     console.log("User message:", userMessage);
+    console.log("Session ID:", sessionId);
 
-    // Get response from our healthcare chatbot logic
-    const response = getHealthcareResponse(userMessage);
+    // Get access token for Dialogflow API
+    const authClient = await auth.getClient();
+    const accessToken = await authClient.getAccessToken();
 
-    // Format response in Dialogflow format for frontend compatibility
+    // Construct Dialogflow CX API URL
+    const apiUrl = `https://${LOCATION}-dialogflow.googleapis.com/v3/projects/${PROJECT_ID}/locations/${LOCATION}/agents/${AGENT_ID}/sessions/${sessionId}:detectIntent`;
+
+    console.log("Calling Dialogflow API:", apiUrl);
+
+    // Prepare request for Dialogflow CX
+    const dialogflowRequest = {
+      queryInput: {
+        text: {
+          text: userMessage,
+        },
+        languageCode: "en",
+      },
+    };
+
+    // Make API call to Dialogflow CX
+    const response = await axios.post(apiUrl, dialogflowRequest, {
+      headers: {
+        Authorization: `Bearer ${accessToken.token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("=== DIALOGFLOW CX RESPONSE ===");
+    console.log(JSON.stringify(response.data, null, 2));
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    console.error("Dialogflow API error:", error.message);
+    console.error("Error details:", error.response?.data || error);
+
+    // Fallback to hardcoded response if Dialogflow fails
+    const fallbackResponse = getHealthcareResponse(
+      req.body?.queryInput?.text?.text || "hello"
+    );
+
     const dialogflowResponse = {
       queryResult: {
         responseMessages: [
           {
             text: {
-              text: [response.text],
+              text: [fallbackResponse.text],
             },
           },
         ],
       },
     };
 
-    // Add rich content if available
-    if (response.richContent) {
-      dialogflowResponse.queryResult.responseMessages.push({
-        payload: response.richContent,
-      });
-    }
-
-    console.log("=== HEALTHCARE CHATBOT RESPONSE ===");
-    console.log(JSON.stringify(dialogflowResponse, null, 2));
-
+    console.log("Using fallback response");
     return res.status(200).json(dialogflowResponse);
-  } catch (error) {
-    console.error("Healthcare chatbot error:", error.message);
-
-    return res.status(500).json({
-      error: "Healthcare chatbot error",
-      details: error.message,
-    });
   }
 });
