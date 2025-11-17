@@ -4,7 +4,7 @@
   "description": "Firebase Cloud Functions for Healthcare Platform",
   "main": "index.js",
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
     "axios": "^1.12.2",
