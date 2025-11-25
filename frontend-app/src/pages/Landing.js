@@ -50,7 +50,7 @@ export default function Landing() {
                 at Your Fingertips
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl lg:max-w-none mx-auto lg:mx-0 mb-8 leading-relaxed">
-                Experience the future of healthcare with NextGen Doctor. Connect
+                Experience the future of healthcare with NextGen HealthCare. Connect
                 with 16+ specialists across 7 UK cities, from real-time
                 scheduling and digital check-ins to personalized health
                 education and AI-powered medical insights.

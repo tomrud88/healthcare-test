@@ -111,7 +111,7 @@ export default function Navbar() {
           <span
             className="text-2xl font-bold nextgen-doctor-text-gradient" // Custom class for text gradient
           >
-            NextGen Doctor
+            NextGen HealthCare
           </span>
         </Link>
 
