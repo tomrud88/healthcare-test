@@ -394,7 +394,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       ...prev,
       {
         id: Date.now(),
-        text: `I have uploaded my medical report. File URL: ${fileUrl}`,
+        text: `📎 Medical report uploaded`,
         isBot: false,
         timestamp: new Date(),
       },
@@ -404,6 +404,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       const apiEndpoint =
         "https://us-central1-healthcare-poc-477108.cloudfunctions.net/dialogflowProxy";
 
+      // Send the file URL directly as text (like in Dialogflow simulator)
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -411,12 +412,10 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
           sessionId: sessionId,
           queryInput: {
             text: {
-              text: "I have uploaded my medical report.",
+              text: fileUrl, // Send the URL directly
             },
             languageCode: "en",
           },
-          // 👇 This passes the file_url into Dialogflow session parameters
-          sessionParams: { file_url: fileUrl },
         }),
       });
 
