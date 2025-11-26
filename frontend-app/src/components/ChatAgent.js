@@ -316,8 +316,11 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
       // Check for session parameters (webhook response)
       const sessionParams = data.queryResult?.parameters;
+      let hasSessionParams = false;
+
       if (sessionParams?.doctor_summary) {
         console.log("=== FOUND DOCTOR SUMMARY IN SESSION PARAMS ===");
+        hasSessionParams = true;
 
         // Display doctor summary
         const botMessages = [];
@@ -354,7 +357,12 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         return;
       }
 
-      if (data.queryResult && data.queryResult.responseMessages) {
+      // Only process response messages if we didn't handle session params
+      if (
+        !hasSessionParams &&
+        data.queryResult &&
+        data.queryResult.responseMessages
+      ) {
         const responseMessages = data.queryResult.responseMessages;
 
         console.log("=== RESPONSE MESSAGES (sendMessage) ===");
