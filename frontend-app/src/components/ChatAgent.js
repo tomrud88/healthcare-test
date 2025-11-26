@@ -387,15 +387,21 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
   const handleFileUploaded = async (fileUrl) => {
     setShowUploader(false);
+
     setIsLoading(true);
 
     // Show user confirmation that upload happened
+
     setMessages((prev) => [
       ...prev,
+
       {
         id: Date.now(),
-        text: `📎 Medical report uploaded`,
+
+        text: `I have uploaded my medical report. File URL: ${fileUrl}`,
+
         isBot: false,
+
         timestamp: new Date(),
       },
     ]);
@@ -404,18 +410,25 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       const apiEndpoint =
         "https://us-central1-healthcare-poc-477108.cloudfunctions.net/dialogflowProxy";
 
-      // Send the file URL directly as text (like in Dialogflow simulator)
       const response = await fetch(apiEndpoint, {
         method: "POST",
+
         headers: { "Content-Type": "application/json" },
+
         body: JSON.stringify({
           sessionId: sessionId,
+
           queryInput: {
             text: {
-              text: fileUrl, // Send the URL directly
+              text: "I have uploaded my medical report.",
             },
+
             languageCode: "en",
           },
+
+          // 👇 pass file_url into Dialogflow session parameters
+
+          sessionParams: { file_url: fileUrl },
         }),
       });
 
@@ -426,34 +439,45 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       const data = await response.json();
 
       console.log("=== FULL DIALOGFLOW RESPONSE (after upload) ===");
+
       console.log(JSON.stringify(data, null, 2));
 
       if (data.queryResult && data.queryResult.responseMessages) {
         const responseMessages = data.queryResult.responseMessages;
 
         console.log("=== RESPONSE MESSAGES (after upload) ===");
+
         console.log(JSON.stringify(responseMessages, null, 2));
 
         const botMessages = [];
+
         responseMessages.forEach((msg) => {
           if (msg.text && msg.text.text) {
             msg.text.text.forEach((line) => {
               if (line && line.trim()) {
                 botMessages.push({
                   id: Date.now() + Math.random(),
+
                   text: line,
+
                   isBot: true,
+
                   timestamp: new Date(),
                 });
               }
             });
           }
+
           if (msg.payload) {
             botMessages.push({
               id: Date.now() + Math.random(),
+
               text: "",
+
               isBot: true,
+
               timestamp: new Date(),
+
               richContent: msg.payload,
             });
           }
@@ -464,11 +488,16 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         } else {
           setMessages((prev) => [
             ...prev,
+
             {
               id: Date.now() + 1,
+
               text: "No response received from the assistant.",
+
               isBot: true,
+
               timestamp: new Date(),
+
               isError: true,
             },
           ]);
@@ -476,19 +505,28 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       }
     } catch (err) {
       console.error("Error processing uploaded file:", err);
+
       setMessages((prev) => [
         ...prev,
+
         {
           id: Date.now() + 1,
+
           text: "Error: " + (err.message || "Failed to process uploaded file."),
+
           isBot: true,
+
           timestamp: new Date(),
+
           isError: true,
         },
       ]);
     }
+
     setIsLoading(false);
   };
+
+ 
 
   const startVoiceInput = () => {
     const SpeechRecognition =
@@ -732,7 +770,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                   <p className="text-sm font-semibold text-blue-700 mb-3">
                     Upload medical report
                   </p>
-                  <MedicalReportUploader onFileUploaded={handleFileUploaded} />
+                  <MedicalReportUploader />
                   <button
                     type="button"
                     onClick={() => setShowUploader(false)}
