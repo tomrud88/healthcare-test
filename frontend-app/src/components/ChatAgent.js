@@ -389,21 +389,12 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
     setShowUploader(false);
     setIsLoading(true);
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        text: `I have uploaded my medical report.`,
-        isBot: false,
-        timestamp: new Date(),
-      },
-    ]);
-
     try {
-      // Call dialogflowProxy to continue the Dialogflow conversation flow
+      // First, set the file_url parameter in the session
       const apiEndpoint =
         "https://us-central1-healthcare-poc-477108.cloudfunctions.net/dialogflowProxy";
 
+      // Send the file URL to trigger webhook processing
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
@@ -413,11 +404,10 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
           sessionId: sessionId,
           queryInput: {
             text: {
-              text: "I have uploaded my medical report.",
+              text: fileUrl, // Send the URL as the message
             },
             languageCode: "en",
           },
-          sessionParams: { file_url: fileUrl },
         }),
       });
 
