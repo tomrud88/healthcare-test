@@ -804,7 +804,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
                   <p className="text-sm font-semibold text-blue-700 mb-3">
                     Upload medical report
                   </p>
-                  <MedicalReportUploader />
+                  <MedicalReportUploader onFileUploaded={handleFileUploaded} />
                   <button
                     type="button"
                     onClick={() => setShowUploader(false)}
