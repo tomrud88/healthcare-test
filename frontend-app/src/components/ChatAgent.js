@@ -393,56 +393,96 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       ...prev,
       {
         id: Date.now(),
-        text: `I have uploaded my medical report. File URL: ${fileUrl}`,
+        text: `I have uploaded my medical report.`,
         isBot: false,
         timestamp: new Date(),
       },
     ]);
 
     try {
-      const webhookResponse = await fetch(
-        "https://upload-medical-documents-750964638675.us-central1.run.app/webhook",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionInfo: { parameters: { file_url: fileUrl } },
-          }),
-        }
-      );
-      if (!webhookResponse.ok) {
-        throw new Error("Failed to process report.");
+      // Call dialogflowProxy to continue the Dialogflow conversation flow
+      const apiEndpoint =
+        "https://us-central1-healthcare-poc-477108.cloudfunctions.net/dialogflowProxy";
+
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionId: sessionId,
+          queryInput: {
+            text: {
+              text: "I have uploaded my medical report.",
+            },
+            languageCode: "en",
+          },
+          sessionParams: { file_url: fileUrl },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const result = await webhookResponse.json();
-      const messagesList = result?.fulfillment_response?.messages;
-      if (messagesList && messagesList[0]?.text?.text?.[0]) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            text: messagesList[0].text.text[0],
-            isBot: true,
-            timestamp: new Date(),
-          },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            text: "No summary received.",
-            isBot: true,
-            timestamp: new Date(),
-            isError: true,
-          },
-        ]);
+
+      const data = await response.json();
+
+      console.log("=== FULL DIALOGFLOW RESPONSE (after upload) ===");
+      console.log(JSON.stringify(data, null, 2));
+
+      if (data.queryResult && data.queryResult.responseMessages) {
+        const responseMessages = data.queryResult.responseMessages;
+
+        console.log("=== RESPONSE MESSAGES (after upload) ===");
+        console.log(JSON.stringify(responseMessages, null, 2));
+
+        const botMessages = [];
+        responseMessages.forEach((msg) => {
+          if (msg.text && msg.text.text) {
+            msg.text.text.forEach((line) => {
+              if (line && line.trim()) {
+                botMessages.push({
+                  id: Date.now() + Math.random(),
+                  text: line,
+                  isBot: true,
+                  timestamp: new Date(),
+                });
+              }
+            });
+          }
+          if (msg.payload) {
+            botMessages.push({
+              id: Date.now() + Math.random(),
+              text: "",
+              isBot: true,
+              timestamp: new Date(),
+              richContent: msg.payload,
+            });
+          }
+        });
+
+        if (botMessages.length > 0) {
+          setMessages((prev) => [...prev, ...botMessages]);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now() + 1,
+              text: "No response received from the assistant.",
+              isBot: true,
+              timestamp: new Date(),
+              isError: true,
+            },
+          ]);
+        }
       }
     } catch (err) {
+      console.error("Error processing uploaded file:", err);
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
-          text: "Error: " + (err.message || "Failed to get summary."),
+          text: "Error: " + (err.message || "Failed to process uploaded file."),
           isBot: true,
           timestamp: new Date(),
           isError: true,
