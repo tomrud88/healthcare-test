@@ -506,9 +506,11 @@ exports.dialogflowProxy = functions.https.onRequest(async (req, res) => {
     // Extract user message from the request
     const userMessage = req.body?.queryInput?.text?.text || "hello";
     const sessionId = req.body?.sessionId || "default-session";
+    const sessionParams = req.body?.sessionParams || {};
 
     console.log("User message:", userMessage);
     console.log("Session ID:", sessionId);
+    console.log("Session params:", JSON.stringify(sessionParams, null, 2));
 
     // Get access token for Dialogflow API
     const authClient = await auth.getClient();
@@ -528,6 +530,13 @@ exports.dialogflowProxy = functions.https.onRequest(async (req, res) => {
         languageCode: "en",
       },
     };
+
+    // Add session parameters if provided
+    if (Object.keys(sessionParams).length > 0) {
+      dialogflowRequest.queryParams = {
+        parameters: sessionParams,
+      };
+    }
 
     // Make API call to Dialogflow CX
     const response = await axios.post(apiUrl, dialogflowRequest, {
