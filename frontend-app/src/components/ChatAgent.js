@@ -318,10 +318,10 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       const sessionParams = data.queryResult?.parameters;
       if (sessionParams?.doctor_summary) {
         console.log("=== FOUND DOCTOR SUMMARY IN SESSION PARAMS ===");
-        
+
         // Display doctor summary
         const botMessages = [];
-        
+
         if (sessionParams.doctor_summary) {
           botMessages.push({
             id: Date.now() + Math.random(),
@@ -330,7 +330,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             timestamp: new Date(),
           });
         }
-        
+
         if (sessionParams.consultation_message) {
           botMessages.push({
             id: Date.now() + Math.random(),
@@ -339,7 +339,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             timestamp: new Date(),
           });
         }
-        
+
         if (sessionParams.should_book_consultation) {
           botMessages.push({
             id: Date.now() + Math.random(),
@@ -348,7 +348,7 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
             timestamp: new Date(),
           });
         }
-        
+
         setMessages((prev) => [...prev, ...botMessages]);
         setIsLoading(false);
         return;
@@ -460,15 +460,11 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
           queryInput: {
             text: {
-              text: "I have uploaded my medical report.",
+              text: fileUrl, // Send URL directly like the simulator does
             },
 
             languageCode: "en",
           },
-
-          // 👇 pass file_url into Dialogflow session parameters
-
-          sessionParams: { file_url: fileUrl },
         }),
       });
 
@@ -565,8 +561,6 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
     setIsLoading(false);
   };
-
- 
 
   const startVoiceInput = () => {
     const SpeechRecognition =
