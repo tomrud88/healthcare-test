@@ -311,8 +311,48 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
 
       const data = await response.json();
 
-      console.log("=== FULL DIALOGFLOW RESPONSE (sendMessage) ===");
+      console.log("=== FULL DIALOGFLOW RESPONSE (after upload) ===");
       console.log(JSON.stringify(data, null, 2));
+
+      // Check for session parameters (webhook response)
+      const sessionParams = data.queryResult?.parameters;
+      if (sessionParams?.doctor_summary) {
+        console.log("=== FOUND DOCTOR SUMMARY IN SESSION PARAMS ===");
+        
+        // Display doctor summary
+        const botMessages = [];
+        
+        if (sessionParams.doctor_summary) {
+          botMessages.push({
+            id: Date.now() + Math.random(),
+            text: "👨‍⚕️ Doctor Summary:\n\n" + sessionParams.doctor_summary,
+            isBot: true,
+            timestamp: new Date(),
+          });
+        }
+        
+        if (sessionParams.consultation_message) {
+          botMessages.push({
+            id: Date.now() + Math.random(),
+            text: "📅 " + sessionParams.consultation_message,
+            isBot: true,
+            timestamp: new Date(),
+          });
+        }
+        
+        if (sessionParams.should_book_consultation) {
+          botMessages.push({
+            id: Date.now() + Math.random(),
+            text: "Based on your report, a consultation is recommended.\nLet's schedule it now. 📆\n\nWhat specialty, treatment, or scan are you looking for?",
+            isBot: true,
+            timestamp: new Date(),
+          });
+        }
+        
+        setMessages((prev) => [...prev, ...botMessages]);
+        setIsLoading(false);
+        return;
+      }
 
       if (data.queryResult && data.queryResult.responseMessages) {
         const responseMessages = data.queryResult.responseMessages;
