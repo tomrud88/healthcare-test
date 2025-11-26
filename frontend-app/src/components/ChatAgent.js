@@ -314,13 +314,13 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
       console.log("=== FULL DIALOGFLOW RESPONSE (after upload) ===");
       console.log(JSON.stringify(data, null, 2));
 
-      // Check for session parameters (webhook response)
+      // Check if there are responseMessages - if yes, prioritize those over session params
+      const hasResponseMessages = data.queryResult?.responseMessages && data.queryResult.responseMessages.length > 0;
       const sessionParams = data.queryResult?.parameters;
-      let hasSessionParams = false;
 
-      if (sessionParams?.doctor_summary) {
-        console.log("=== FOUND DOCTOR SUMMARY IN SESSION PARAMS ===");
-        hasSessionParams = true;
+      // Only show doctor summary if there are NO responseMessages (meaning it's the initial upload response)
+      if (sessionParams?.doctor_summary && !hasResponseMessages) {
+        console.log("=== FOUND DOCTOR SUMMARY IN SESSION PARAMS (INITIAL RESPONSE) ===");
 
         // Display doctor summary
         const botMessages = [];
@@ -357,12 +357,8 @@ const ChatAgent = ({ isOpen, onClose, pendingMessage }) => {
         return;
       }
 
-      // Only process response messages if we didn't handle session params
-      if (
-        !hasSessionParams &&
-        data.queryResult &&
-        data.queryResult.responseMessages
-      ) {
+      // Process response messages (normal flow)
+      if (data.queryResult && data.queryResult.responseMessages) {
         const responseMessages = data.queryResult.responseMessages;
 
         console.log("=== RESPONSE MESSAGES (sendMessage) ===");
